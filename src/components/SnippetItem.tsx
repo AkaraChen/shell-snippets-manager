@@ -81,23 +81,9 @@ export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, d
               </div>
             )}
 
-            {/* Meta row: enabled toggle and tags */}
-            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
-              {/* Enabled toggle */}
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={snippet.enabled}
-                  onCheckedChange={() => onToggle(snippet.id)}
-                  className="data-[state=checked]:bg-success"
-                />
-                <span className="text-xs text-muted-foreground">
-                  {snippet.enabled ? 'Enabled' : 'Disabled'}
-                </span>
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-2 pt-3 border-t border-border/30">
+            {/* Actions and toggle row */}
+            <div className="flex items-center gap-2 pt-2">
+              {/* Action buttons on the left */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -116,6 +102,18 @@ export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, d
                 <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Delete
               </Button>
+
+              {/* Enabled toggle on the right */}
+              <div className="flex items-center gap-2 ml-auto">
+                <Switch
+                  checked={snippet.enabled}
+                  onCheckedChange={() => onToggle(snippet.id)}
+                  className="data-[state=checked]:bg-success"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {snippet.enabled ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
             </div>
           </div>
         </AccordionContent>
