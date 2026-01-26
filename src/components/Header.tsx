@@ -8,7 +8,7 @@ interface HeaderProps {
 export function Header({ onCreateClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[var(--code-border)] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between px-4">
+      <div className="container mx-auto flex h-14 items-center justify-between px-4 max-w-3xl">
         {/* Logo and title */}
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-8 h-8 rounded-md bg-[var(--terminal-green)]/10 border border-[var(--terminal-green)]/20">
