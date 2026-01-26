@@ -11,8 +11,8 @@ use config::AppPaths;
 use commands::{
     add_tag_to_snippet, create_snippet, create_tag, delete_snippet, delete_tag,
     get_output_directory, get_shell_info, get_snippet, get_snippets, get_source_line, get_tags,
-    remove_tag_from_snippet, reorder_snippets, sync_all_shells, sync_to_file, toggle_snippet,
-    update_snippet,
+    open_file_in_editor, open_output_directory, remove_tag_from_snippet, reorder_snippets,
+    sync_all_shells, sync_to_file, toggle_snippet, update_snippet,
 };
 use db::connection::{establish_connection, run_migrations};
 use tauri::Manager;
@@ -60,6 +60,8 @@ pub fn run() {
             sync_all_shells,
             get_source_line,
             get_output_directory,
+            open_output_directory,
+            open_file_in_editor,
             // Shell info
             get_shell_info,
         ])

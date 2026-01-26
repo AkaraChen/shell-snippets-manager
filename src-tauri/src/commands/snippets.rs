@@ -210,6 +210,112 @@ pub fn get_output_directory(paths: State<'_, AppPaths>) -> Result<String, AppErr
     Ok(output_dir.display().to_string())
 }
 
+/// Open the output directory in the system's file manager
+#[tauri::command]
+pub fn open_output_directory(paths: State<'_, AppPaths>) -> Result<(), AppError> {
+    let output_dir = paths.output_dir();
+
+    #[cfg(target_os = "macos")]
+    let command = "open";
+
+    #[cfg(target_os = "linux")]
+    let command = "xdg-open";
+
+    #[cfg(target_os = "windows")]
+    let command = "explorer";
+
+    std::process::Command::new(command)
+        .arg(output_dir)
+        .spawn()
+        .map_err(|e| AppError::IoError(e))?;
+
+    Ok(())
+}
+
+/// Open a file in the user's default editor ($EDITOR)
+#[tauri::command]
+pub fn open_file_in_editor(file_path: String) -> Result<(), AppError> {
+    // Expand ~ to home directory
+    let expanded_path = if file_path.starts_with("~/") {
+        let home = std::env::var("HOME")
+            .or_else(|_| std::env::var("USERPROFILE"))
+            .unwrap_or_else(|_| ".".to_string());
+        file_path.replacen("~", &home, 1)
+    } else {
+        file_path
+    };
+
+    // Get editor from $EDITOR, fallback to system defaults
+    let editor = std::env::var("EDITOR").unwrap_or_else(|_| {
+        #[cfg(target_os = "macos")]
+        return "vim".to_string();
+
+        #[cfg(target_os = "linux")]
+        return "vim".to_string();
+
+        #[cfg(target_os = "windows")]
+        return "notepad".to_string();
+    });
+
+    // Check if we need to use a terminal for terminal editors
+    let terminal_editors = ["vim", "vi", "nano", "emacs", "nvim"];
+    let needs_terminal = terminal_editors.iter().any(|&e| editor.contains(e));
+
+    if needs_terminal {
+        #[cfg(target_os = "macos")]
+        {
+            std::process::Command::new("open")
+                .arg("-a")
+                .arg("Terminal")
+                .arg(&expanded_path)
+                .spawn()
+                .map_err(|e| AppError::IoError(e))?;
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            // Try common terminal emulators
+            let terminals = ["x-terminal-emulator", "gnome-terminal", "konsole", "xterm"];
+            let mut success = false;
+
+            for terminal in &terminals {
+                if let Ok(mut child) = std::process::Command::new(terminal)
+                    .arg("-e")
+                    .arg(&editor)
+                    .arg(&expanded_path)
+                    .spawn()
+                {
+                    success = true;
+                    break;
+                }
+            }
+
+            if !success {
+                return Err(AppError::IoError(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "No terminal emulator found"
+                )));
+            }
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            std::process::Command::new("cmd")
+                .args(["/c", "start", &editor, &expanded_path])
+                .spawn()
+                .map_err(|e| AppError::IoError(e))?;
+        }
+    } else {
+        // GUI editor or default system editor
+        std::process::Command::new(&editor)
+            .arg(&expanded_path)
+            .spawn()
+            .map_err(|e| AppError::IoError(e))?;
+    }
+
+    Ok(())
+}
+
 // ============================================================================
 // Helper Functions
 // ============================================================================

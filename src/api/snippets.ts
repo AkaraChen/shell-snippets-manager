@@ -47,6 +47,11 @@ export const syncApi = {
     invoke<string>('get_source_line', { shellType }),
 
   getOutputDirectory: () => invoke<string>('get_output_directory'),
+
+  openOutputDirectory: () => invoke<void>('open_output_directory'),
+
+  openFileInEditor: (filePath: string) =>
+    invoke<void>('open_file_in_editor', { filePath }),
 };
 
 export const shellApi = {

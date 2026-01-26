@@ -1,6 +1,7 @@
 import { Terminal, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SyncButton } from './SyncButton';
+import { HelpButton } from './HelpButton';
 import {
   Select,
   SelectContent,
@@ -70,6 +71,7 @@ export function Header({
         {/* Actions */}
         <div className="flex items-center gap-2">
           <SyncButton />
+          <HelpButton />
           <Button
             onClick={onCreateClick}
             size="sm"
