@@ -340,22 +340,44 @@ pub struct ShellInfo {
     pub default_shell: String,
 }
 
-/// Get available shells from /etc/shells and detect user's default shell
+/// Get available shells and detect user's default shell
 #[tauri::command]
 pub fn get_shell_info() -> ShellInfo {
-    let available_shells: Vec<String> = std::fs::read_to_string("/etc/shells")
+    // Get all supported shell types
+    let supported_shells: HashSet<String> = ShellType::all()
+        .into_iter()
+        .map(|shell| shell.as_str().to_string())
+        .collect();
+
+    // Read installed shells from /etc/shells
+    let installed_shells: HashSet<String> = std::fs::read_to_string("/etc/shells")
         .unwrap_or_default()
         .lines()
         .filter(|line| !line.trim().is_empty() && !line.starts_with('#'))
         .filter_map(|path| path.rsplit('/').next().map(String::from))
-        .collect::<HashSet<_>>()
-        .into_iter()
+        .collect();
+
+    // Return only shells that are both supported AND installed
+    let available_shells: Vec<String> = supported_shells
+        .intersection(&installed_shells)
+        .cloned()
         .collect();
 
     let default_shell = std::env::var("SHELL")
         .ok()
         .and_then(|s| s.rsplit('/').next().map(String::from))
-        .unwrap_or_else(|| "bash".to_string());
+        .and_then(|shell| {
+            // Only use the detected shell if it's both supported and installed
+            if available_shells.contains(&shell) {
+                Some(shell)
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| {
+            // Fallback to first available shell, or "bash" if none available
+            available_shells.first().cloned().unwrap_or_else(|| "bash".to_string())
+        });
 
     ShellInfo {
         available_shells,
