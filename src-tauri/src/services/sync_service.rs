@@ -9,7 +9,7 @@ use crate::models::{ShellType, Snippet};
 /// Generate the output filename for a shell type
 pub fn get_output_filename(shell: &ShellType) -> String {
     format!(
-        ".snippets-manager-{}.{}",
+        "snippets-manager-{}.{}",
         shell.as_str(),
         shell.file_extension()
     )
@@ -151,25 +151,25 @@ mod tests {
     #[test]
     fn test_get_output_filename_bash() {
         let filename = get_output_filename(&ShellType::Bash);
-        assert_eq!(filename, ".snippets-manager-bash.sh");
+        assert_eq!(filename, "snippets-manager-bash.sh");
     }
 
     #[test]
     fn test_get_output_filename_zsh() {
         let filename = get_output_filename(&ShellType::Zsh);
-        assert_eq!(filename, ".snippets-manager-zsh.sh");
+        assert_eq!(filename, "snippets-manager-zsh.sh");
     }
 
     #[test]
     fn test_get_output_filename_fish() {
         let filename = get_output_filename(&ShellType::Fish);
-        assert_eq!(filename, ".snippets-manager-fish.fish");
+        assert_eq!(filename, "snippets-manager-fish.fish");
     }
 
     #[test]
     fn test_get_output_filename_powershell() {
         let filename = get_output_filename(&ShellType::Powershell);
-        assert_eq!(filename, ".snippets-manager-powershell.ps1");
+        assert_eq!(filename, "snippets-manager-powershell.ps1");
     }
 
     #[test]
@@ -179,7 +179,7 @@ mod tests {
 
         assert!(source_line.contains("[ -f"));
         assert!(source_line.contains("&& source"));
-        assert!(source_line.contains(".snippets-manager-bash.sh"));
+        assert!(source_line.contains("snippets-manager-bash.sh"));
     }
 
     #[test]
@@ -188,7 +188,7 @@ mod tests {
         let source_line = get_source_line(&ShellType::Fish, &dir);
 
         assert!(source_line.starts_with("source \""));
-        assert!(source_line.contains(".snippets-manager-fish.fish"));
+        assert!(source_line.contains("snippets-manager-fish.fish"));
     }
 
     #[test]
@@ -197,7 +197,7 @@ mod tests {
         let source_line = get_source_line(&ShellType::Powershell, &dir);
 
         assert!(source_line.starts_with(". \""));
-        assert!(source_line.contains(".snippets-manager-powershell.ps1"));
+        assert!(source_line.contains("snippets-manager-powershell.ps1"));
     }
 
     #[test]
