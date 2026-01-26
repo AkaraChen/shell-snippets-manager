@@ -46,7 +46,7 @@ export function Header({
           </div>
           <h1 className="text-lg font-semibold font-[var(--font-mono)] tracking-tight flex items-center">
             <Select value={selectedShell} onValueChange={onShellChange}>
-              <SelectTrigger className="border-none shadow-none bg-transparent! hover:bg-success/10! p-0 h-auto w-auto text-lg font-semibold text-success focus:ring-0 focus-visible:ring-0 gap-1 mr-2 [&>svg]:text-success">
+              <SelectTrigger className="border-none shadow-none bg-transparent! hover:bg-success/10! px-2 h-auto w-auto text-lg font-semibold text-success focus:ring-0 focus-visible:ring-0 gap-1 mr-2 [&>svg]:text-success">
                 <SelectValue>
                   {capitalizeShellName(selectedShell)}
                 </SelectValue>
