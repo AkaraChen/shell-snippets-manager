@@ -1,5 +1,6 @@
+import { useCallback, useState, useEffect } from 'react';
 import { Accordion } from '@/components/ui/accordion';
-import { SnippetItem } from './SnippetItem';
+import { DraggableSnippetItem } from './DraggableSnippetItem';
 import type { Snippet } from '@/types/snippet';
 import { Terminal, FileCode } from 'lucide-react';
 
@@ -7,6 +8,7 @@ interface SnippetListProps {
   snippets: Snippet[];
   loading: boolean;
   onToggle: (id: number) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
 }
 
 function EmptyState() {
@@ -43,12 +45,40 @@ function LoadingSkeleton() {
   );
 }
 
-export function SnippetList({ snippets, loading, onToggle }: SnippetListProps) {
+export function SnippetList({ snippets, loading, onToggle, onReorder }: SnippetListProps) {
+  // Local state for immediate visual feedback during drag
+  const [localSnippets, setLocalSnippets] = useState<Snippet[]>(snippets);
+
+  // Sync with external state when it changes (after API confirms)
+  useEffect(() => {
+    setLocalSnippets(snippets);
+  }, [snippets]);
+
+  const moveSnippet = useCallback((dragIndex: number, hoverIndex: number) => {
+    // Optimistic local reorder for smooth UX
+    setLocalSnippets((prev) => {
+      const updated = [...prev];
+      const [removed] = updated.splice(dragIndex, 1);
+      updated.splice(hoverIndex, 0, removed);
+      return updated;
+    });
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      // Only call API if position actually changed
+      if (fromIndex !== toIndex) {
+        onReorder(fromIndex, toIndex);
+      }
+    },
+    [onReorder]
+  );
+
   if (loading) {
     return <LoadingSkeleton />;
   }
 
-  if (snippets.length === 0) {
+  if (localSnippets.length === 0) {
     return <EmptyState />;
   }
 
@@ -57,16 +87,19 @@ export function SnippetList({ snippets, loading, onToggle }: SnippetListProps) {
       <div className="flex items-center gap-2 mb-4 text-muted-foreground">
         <Terminal className="w-4 h-4" />
         <span className="text-sm font-[var(--font-mono)]">
-          {snippets.length} snippet{snippets.length !== 1 ? 's' : ''}
+          {localSnippets.length} snippet{localSnippets.length !== 1 ? 's' : ''}
         </span>
       </div>
 
       <Accordion type="single" collapsible className="space-y-2">
-        {snippets.map((snippet) => (
-          <SnippetItem
+        {localSnippets.map((snippet, index) => (
+          <DraggableSnippetItem
             key={snippet.id}
+            index={index}
             snippet={snippet}
             onToggle={onToggle}
+            moveSnippet={moveSnippet}
+            onDragEnd={handleDragEnd}
           />
         ))}
       </Accordion>

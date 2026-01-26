@@ -3,26 +3,34 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { ShellTypeBadge } from './ShellTypeBadge';
 import { SnippetCodeBlock } from './SnippetCodeBlock';
+import { DragHandle } from './DragHandle';
 import type { Snippet } from '@/types/snippet';
 import { cn } from '@/lib/utils';
 
 interface SnippetItemProps {
   snippet: Snippet;
   onToggle: (id: number) => void;
+  isDragging?: boolean;
+  dragRef?: (element: HTMLElement | null) => void;
 }
 
-export function SnippetItem({ snippet, onToggle }: SnippetItemProps) {
+export function SnippetItem({ snippet, onToggle, isDragging, dragRef }: SnippetItemProps) {
   return (
     <AccordionItem
       value={`snippet-${snippet.id}`}
       className={cn(
         'border border-[var(--code-border)] rounded-lg mb-2 overflow-hidden',
         'bg-card/50 hover:bg-card/80 transition-colors',
-        !snippet.enabled && 'opacity-60'
+        !snippet.enabled && 'opacity-60',
+        isDragging && 'shadow-lg ring-2 ring-[var(--terminal-green)]/30'
       )}
     >
       <AccordionTrigger className="px-4 py-3 hover:no-underline">
         <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Drag handle - attach drag ref here */}
+          <div ref={dragRef as React.Ref<HTMLDivElement>}>
+            <DragHandle />
+          </div>
           <ShellTypeBadge shellType={snippet.shell_type} />
           <span
             className={cn(
