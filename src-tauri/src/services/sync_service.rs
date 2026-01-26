@@ -69,15 +69,9 @@ fn generate_snippet_block(snippet: &Snippet, tags: &[String]) -> String {
     )
 }
 
-/// Snippet with its associated tags for sync
-pub struct SnippetWithTags {
-    pub snippet: Snippet,
-    pub tags: Vec<String>,
-}
-
 /// Sync snippets to a shell-specific file
 pub fn sync_to_file(
-    snippets_with_tags: Vec<SnippetWithTags>,
+    snippets: Vec<Snippet>,
     shell: ShellType,
     output_dir: PathBuf,
 ) -> AppResult<PathBuf> {
@@ -88,16 +82,16 @@ pub fn sync_to_file(
     let output_path = output_dir.join(&filename);
 
     // Generate file content
-    let mut content = generate_header(&shell, snippets_with_tags.len());
+    let mut content = generate_header(&shell, snippets.len());
 
-    for swt in &snippets_with_tags {
-        content.push_str(&generate_snippet_block(&swt.snippet, &swt.tags));
+    for snippet in &snippets {
+        content.push_str(&generate_snippet_block(snippet, &[]));
     }
 
     // Add footer
     content.push_str(&format!(
         "\n# --- End of Shell Snippets Manager ({} snippets) ---\n",
-        snippets_with_tags.len()
+        snippets.len()
     ));
 
     // Write atomically (write to temp, then rename)
@@ -195,12 +189,9 @@ mod tests {
         let output_dir = temp_dir.path().to_path_buf();
 
         let snippet = create_test_snippet(1, "test_alias", "alias test='echo test'");
-        let snippets_with_tags = vec![SnippetWithTags {
-            snippet,
-            tags: vec!["git".to_string(), "alias".to_string()],
-        }];
+        let snippets = vec![snippet];
 
-        let result = sync_to_file(snippets_with_tags, ShellType::Bash, output_dir.clone());
+        let result = sync_to_file(snippets, ShellType::Bash, output_dir.clone());
         assert!(result.is_ok());
 
         let output_path = result.unwrap();
@@ -213,7 +204,6 @@ mod tests {
         assert!(content.contains("Snippets: 1"));
         assert!(content.contains("test_alias"));
         assert!(content.contains("alias test='echo test'"));
-        assert!(content.contains("Tags: git, alias"));
     }
 
     #[test]
@@ -221,9 +211,9 @@ mod tests {
         let temp_dir = tempdir().expect("Failed to create temp dir");
         let output_dir = temp_dir.path().to_path_buf();
 
-        let snippets_with_tags: Vec<SnippetWithTags> = vec![];
+        let snippets: Vec<Snippet> = vec![];
 
-        let result = sync_to_file(snippets_with_tags, ShellType::Zsh, output_dir);
+        let result = sync_to_file(snippets, ShellType::Zsh, output_dir);
         assert!(result.is_ok());
 
         let output_path = result.unwrap();
@@ -238,22 +228,13 @@ mod tests {
         let temp_dir = tempdir().expect("Failed to create temp dir");
         let output_dir = temp_dir.path().to_path_buf();
 
-        let snippets_with_tags = vec![
-            SnippetWithTags {
-                snippet: create_test_snippet(1, "snippet_one", "echo one"),
-                tags: vec![],
-            },
-            SnippetWithTags {
-                snippet: create_test_snippet(2, "snippet_two", "echo two"),
-                tags: vec!["tag1".to_string()],
-            },
-            SnippetWithTags {
-                snippet: create_test_snippet(3, "snippet_three", "echo three"),
-                tags: vec!["tag1".to_string(), "tag2".to_string()],
-            },
+        let snippets = vec![
+            create_test_snippet(1, "snippet_one", "echo one"),
+            create_test_snippet(2, "snippet_two", "echo two"),
+            create_test_snippet(3, "snippet_three", "echo three"),
         ];
 
-        let result = sync_to_file(snippets_with_tags, ShellType::Bash, output_dir);
+        let result = sync_to_file(snippets, ShellType::Bash, output_dir);
         assert!(result.is_ok());
 
         let output_path = result.unwrap();
@@ -271,12 +252,9 @@ mod tests {
         let temp_dir = tempdir().expect("Failed to create temp dir");
         let output_dir = temp_dir.path().join("nested").join("dir");
 
-        let snippets_with_tags = vec![SnippetWithTags {
-            snippet: create_test_snippet(1, "test", "echo test"),
-            tags: vec![],
-        }];
+        let snippets = vec![create_test_snippet(1, "test", "echo test")];
 
-        let result = sync_to_file(snippets_with_tags, ShellType::Bash, output_dir.clone());
+        let result = sync_to_file(snippets, ShellType::Bash, output_dir.clone());
         assert!(result.is_ok());
         assert!(output_dir.exists());
     }
@@ -286,12 +264,9 @@ mod tests {
         let temp_dir = tempdir().expect("Failed to create temp dir");
         let output_dir = temp_dir.path().to_path_buf();
 
-        let snippets_with_tags = vec![SnippetWithTags {
-            snippet: create_test_snippet(1, "no_tags", "echo no tags"),
-            tags: vec![],
-        }];
+        let snippets = vec![create_test_snippet(1, "no_tags", "echo no tags")];
 
-        let result = sync_to_file(snippets_with_tags, ShellType::Bash, output_dir);
+        let result = sync_to_file(snippets, ShellType::Bash, output_dir);
         assert!(result.is_ok());
 
         let output_path = result.unwrap();
@@ -318,12 +293,9 @@ mod tests {
             updated_at: "2024-01-01 00:00:00".to_string(),
         };
 
-        let snippets_with_tags = vec![SnippetWithTags {
-            snippet,
-            tags: vec![],
-        }];
+        let snippets = vec![snippet];
 
-        let result = sync_to_file(snippets_with_tags, ShellType::Bash, output_dir);
+        let result = sync_to_file(snippets, ShellType::Bash, output_dir);
         assert!(result.is_ok());
 
         let output_path = result.unwrap();

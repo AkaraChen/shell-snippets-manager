@@ -5,12 +5,6 @@ export interface ShellInfo {
   default_shell: string;
 }
 
-export interface Tag {
-  id: number;
-  name: string;
-  color: string | null;
-}
-
 export interface Snippet {
   id: number;
   name: string;
@@ -21,7 +15,6 @@ export interface Snippet {
   sort_order: number;
   created_at: string;
   updated_at: string;
-  tags: Tag[];
 }
 
 export interface NewSnippet {
@@ -40,9 +33,4 @@ export interface UpdateSnippet {
   description?: string | null;
   enabled?: number;
   sort_order?: number;
-}
-
-export interface NewTag {
-  name: string;
-  color?: string | null;
 }

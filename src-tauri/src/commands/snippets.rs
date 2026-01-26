@@ -1,19 +1,13 @@
 use std::collections::HashSet;
 
-use diesel::prelude::*;
-use diesel::SqliteConnection;
 use serde::Serialize;
 use tauri::State;
 
 use crate::config::AppPaths;
-use crate::db::schema::snippet_tags::dsl as st_dsl;
-use crate::db::schema::tags::dsl as tags_dsl;
 use crate::db::DbConnection;
 use crate::error::AppError;
-use crate::models::{
-    NewSnippet, NewTag, ShellType, SnippetResponse, TagResponse, UpdateSnippet, Tag,
-};
-use crate::services::{snippet_service, sync_service, tag_service};
+use crate::models::{NewSnippet, ShellType, SnippetResponse, UpdateSnippet};
+use crate::services::{snippet_service, sync_service};
 
 type DbState<'a> = State<'a, DbConnection>;
 
@@ -75,53 +69,6 @@ pub fn reorder_snippets(db: DbState, order: Vec<(i32, i32)>) -> Result<(), AppEr
 }
 
 // ============================================================================
-// Tag Commands
-// ============================================================================
-
-/// Get all tags
-#[tauri::command]
-pub fn get_tags(db: DbState) -> Result<Vec<TagResponse>, AppError> {
-    let mut conn = db.lock().map_err(|_| AppError::LockError)?;
-    tag_service::get_all_tags(&mut conn)
-}
-
-/// Create a new tag
-#[tauri::command]
-pub fn create_tag(db: DbState, tag: NewTag) -> Result<TagResponse, AppError> {
-    let mut conn = db.lock().map_err(|_| AppError::LockError)?;
-    tag_service::create_tag(&mut conn, tag)
-}
-
-/// Delete a tag
-#[tauri::command]
-pub fn delete_tag(db: DbState, id: i32) -> Result<(), AppError> {
-    let mut conn = db.lock().map_err(|_| AppError::LockError)?;
-    tag_service::delete_tag(&mut conn, id)
-}
-
-/// Add a tag to a snippet
-#[tauri::command]
-pub fn add_tag_to_snippet(
-    db: DbState,
-    snippet_id: i32,
-    tag_id: i32,
-) -> Result<(), AppError> {
-    let mut conn = db.lock().map_err(|_| AppError::LockError)?;
-    snippet_service::add_tag_to_snippet(&mut conn, snippet_id, tag_id)
-}
-
-/// Remove a tag from a snippet
-#[tauri::command]
-pub fn remove_tag_from_snippet(
-    db: DbState,
-    snippet_id: i32,
-    tag_id: i32,
-) -> Result<(), AppError> {
-    let mut conn = db.lock().map_err(|_| AppError::LockError)?;
-    snippet_service::remove_tag_from_snippet(&mut conn, snippet_id, tag_id)
-}
-
-// ============================================================================
 // Sync Commands
 // ============================================================================
 
@@ -138,16 +85,7 @@ pub fn sync_to_file(
 
     let snippets = snippet_service::get_enabled_snippets_by_shell(&mut conn, shell.as_str())?;
 
-    // Get tags for each snippet
-    let snippets_with_tags: Vec<sync_service::SnippetWithTags> = snippets
-        .into_iter()
-        .map(|snippet| {
-            let tags = get_tag_names_for_snippet(&mut conn, snippet.id).unwrap_or_default();
-            sync_service::SnippetWithTags { snippet, tags }
-        })
-        .collect();
-
-    let output_path = sync_service::sync_to_file(snippets_with_tags, shell, output_dir.to_path_buf())?;
+    let output_path = sync_service::sync_to_file(snippets, shell, output_dir.to_path_buf())?;
 
     Ok(output_path.display().to_string())
 }
@@ -174,16 +112,7 @@ pub fn sync_all_shells(
             snippet_service::get_enabled_snippets_by_shell(&mut conn, shell.as_str())?;
 
         if !snippets.is_empty() {
-            let snippets_with_tags: Vec<sync_service::SnippetWithTags> = snippets
-                .into_iter()
-                .map(|snippet| {
-                    let tags = get_tag_names_for_snippet(&mut conn, snippet.id).unwrap_or_default();
-                    sync_service::SnippetWithTags { snippet, tags }
-                })
-                .collect();
-
-            let path =
-                sync_service::sync_to_file(snippets_with_tags, shell, output_dir.clone())?;
+            let path = sync_service::sync_to_file(snippets, shell, output_dir.clone())?;
             output_paths.push(path.display().to_string());
         }
     }
@@ -313,21 +242,6 @@ pub fn open_file_in_editor(file_path: String) -> Result<(), AppError> {
     }
 
     Ok(())
-}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/// Get tag names for a snippet (helper for sync)
-fn get_tag_names_for_snippet(conn: &mut SqliteConnection, snippet_id: i32) -> Result<Vec<String>, AppError> {
-    let tags: Vec<Tag> = st_dsl::snippet_tags
-        .filter(st_dsl::snippet_id.eq(snippet_id))
-        .inner_join(tags_dsl::tags)
-        .select(Tag::as_select())
-        .load(conn)?;
-
-    Ok(tags.into_iter().map(|t| t.name).collect())
 }
 
 // ============================================================================

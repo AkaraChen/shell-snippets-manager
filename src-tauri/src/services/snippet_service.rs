@@ -1,41 +1,20 @@
 use diesel::prelude::*;
 
-use crate::db::schema::snippet_tags::dsl as st_dsl;
 use crate::db::schema::snippets::dsl::*;
-use crate::db::schema::tags::dsl as tags_dsl;
 use crate::error::{AppError, AppResult};
-use crate::models::{
-    NewSnippet, NewSnippetTag, Snippet, SnippetResponse, SnippetTag, Tag, TagResponse,
-    UpdateSnippet,
-};
+use crate::models::{NewSnippet, Snippet, SnippetResponse, UpdateSnippet};
 
-/// Get all snippets with their tags, ordered by sort_order
+/// Get all snippets ordered by sort_order
 pub fn get_all_snippets(conn: &mut SqliteConnection) -> AppResult<Vec<SnippetResponse>> {
-    let all_snippets: Vec<Snippet> = snippets.order(sort_order.asc()).load(conn)?;
-
-    let all_tags: Vec<(SnippetTag, Tag)> = SnippetTag::belonging_to(&all_snippets)
-        .inner_join(tags_dsl::tags)
-        .select((SnippetTag::as_select(), Tag::as_select()))
-        .load(conn)?;
-
-    let tags_per_snippet = all_tags.grouped_by(&all_snippets);
-
-    let result = all_snippets
+    snippets
+        .order(sort_order.asc())
+        .load::<Snippet>(conn)?
         .into_iter()
-        .zip(tags_per_snippet)
-        .map(|(snippet, snippet_tags)| {
-            let tag_responses: Vec<TagResponse> = snippet_tags
-                .into_iter()
-                .map(|(_, tag)| TagResponse::from(tag))
-                .collect();
-            SnippetResponse::from_snippet(snippet, tag_responses)
-        })
-        .collect();
-
-    Ok(result)
+        .map(|snippet| Ok(SnippetResponse::from_snippet(snippet)))
+        .collect()
 }
 
-/// Get a single snippet by ID with its tags
+/// Get a single snippet by ID
 pub fn get_snippet_by_id(conn: &mut SqliteConnection, snippet_id: i32) -> AppResult<SnippetResponse> {
     let snippet: Snippet = snippets
         .find(snippet_id)
@@ -45,15 +24,7 @@ pub fn get_snippet_by_id(conn: &mut SqliteConnection, snippet_id: i32) -> AppRes
             _ => AppError::from(e),
         })?;
 
-    let snippet_tags: Vec<Tag> = st_dsl::snippet_tags
-        .filter(st_dsl::snippet_id.eq(snippet_id))
-        .inner_join(tags_dsl::tags)
-        .select(Tag::as_select())
-        .load(conn)?;
-
-    let tag_responses: Vec<TagResponse> = snippet_tags.into_iter().map(TagResponse::from).collect();
-
-    Ok(SnippetResponse::from_snippet(snippet, tag_responses))
+    Ok(SnippetResponse::from_snippet(snippet))
 }
 
 /// Get all enabled snippets for a specific shell type, ordered by sort_order
@@ -76,7 +47,7 @@ pub fn create_snippet(conn: &mut SqliteConnection, new: NewSnippet) -> AppResult
         .values(&new)
         .returning(Snippet::as_returning())
         .get_result(conn)
-        .map(|s| SnippetResponse::from_snippet(s, vec![]))
+        .map(|s| SnippetResponse::from_snippet(s))
         .map_err(AppError::from)
 }
 
@@ -95,16 +66,7 @@ pub fn update_snippet(
             _ => AppError::from(e),
         })?;
 
-    // Fetch tags for the updated snippet
-    let snippet_tags: Vec<Tag> = st_dsl::snippet_tags
-        .filter(st_dsl::snippet_id.eq(snippet_id))
-        .inner_join(tags_dsl::tags)
-        .select(Tag::as_select())
-        .load(conn)?;
-
-    let tag_responses: Vec<TagResponse> = snippet_tags.into_iter().map(TagResponse::from).collect();
-
-    Ok(SnippetResponse::from_snippet(updated, tag_responses))
+    Ok(SnippetResponse::from_snippet(updated))
 }
 
 /// Delete a snippet
@@ -132,16 +94,7 @@ pub fn toggle_snippet(conn: &mut SqliteConnection, snippet_id: i32) -> AppResult
         .returning(Snippet::as_returning())
         .get_result(conn)?;
 
-    // Fetch tags
-    let snippet_tags: Vec<Tag> = st_dsl::snippet_tags
-        .filter(st_dsl::snippet_id.eq(snippet_id))
-        .inner_join(tags_dsl::tags)
-        .select(Tag::as_select())
-        .load(conn)?;
-
-    let tag_responses: Vec<TagResponse> = snippet_tags.into_iter().map(TagResponse::from).collect();
-
-    Ok(SnippetResponse::from_snippet(updated, tag_responses))
+    Ok(SnippetResponse::from_snippet(updated))
 }
 
 /// Reorder snippets - updates sort_order for multiple snippets
@@ -159,70 +112,10 @@ pub fn reorder_snippets(
     })
 }
 
-/// Get tags for a specific snippet
-pub fn get_tags_for_snippet(conn: &mut SqliteConnection, snippet_id: i32) -> AppResult<Vec<TagResponse>> {
-    let snippet_tags: Vec<Tag> = st_dsl::snippet_tags
-        .filter(st_dsl::snippet_id.eq(snippet_id))
-        .inner_join(tags_dsl::tags)
-        .select(Tag::as_select())
-        .load(conn)?;
-
-    Ok(snippet_tags.into_iter().map(TagResponse::from).collect())
-}
-
-/// Add a tag to a snippet
-pub fn add_tag_to_snippet(
-    conn: &mut SqliteConnection,
-    target_snippet_id: i32,
-    target_tag_id: i32,
-) -> AppResult<()> {
-    // Verify snippet exists
-    snippets
-        .find(target_snippet_id)
-        .first::<Snippet>(conn)
-        .map_err(|_| AppError::SnippetNotFound(target_snippet_id))?;
-
-    // Verify tag exists
-    tags_dsl::tags
-        .find(target_tag_id)
-        .first::<Tag>(conn)
-        .map_err(|_| AppError::TagNotFound(target_tag_id))?;
-
-    let new_association = NewSnippetTag {
-        snippet_id: target_snippet_id,
-        tag_id: target_tag_id,
-    };
-
-    diesel::insert_into(st_dsl::snippet_tags)
-        .values(&new_association)
-        .on_conflict_do_nothing()
-        .execute(conn)?;
-
-    Ok(())
-}
-
-/// Remove a tag from a snippet
-pub fn remove_tag_from_snippet(
-    conn: &mut SqliteConnection,
-    target_snippet_id: i32,
-    target_tag_id: i32,
-) -> AppResult<()> {
-    diesel::delete(
-        st_dsl::snippet_tags
-            .filter(st_dsl::snippet_id.eq(target_snippet_id))
-            .filter(st_dsl::tag_id.eq(target_tag_id)),
-    )
-    .execute(conn)?;
-
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::db::test_helpers::create_test_connection;
-    use crate::models::NewTag;
-    use crate::services::tag_service;
 
     fn create_test_snippet(conn: &mut SqliteConnection, name_str: &str, shell: &str) -> SnippetResponse {
         let new_snippet = NewSnippet {
@@ -234,14 +127,6 @@ mod tests {
             sort_order: 0,
         };
         create_snippet(conn, new_snippet).expect("Failed to create test snippet")
-    }
-
-    fn create_test_tag(conn: &mut SqliteConnection, name_str: &str) -> TagResponse {
-        let new_tag = NewTag {
-            name: name_str.to_string(),
-            color: None,
-        };
-        tag_service::create_tag(conn, new_tag).expect("Failed to create test tag")
     }
 
     #[test]
@@ -265,7 +150,6 @@ mod tests {
         assert_eq!(snippet.shell_type, "bash");
         assert_eq!(snippet.content, "alias test='echo test'");
         assert!(snippet.enabled);
-        assert!(snippet.tags.is_empty());
     }
 
     #[test]
@@ -449,75 +333,5 @@ mod tests {
         // Get fish snippets (none)
         let fish_snippets = get_enabled_snippets_by_shell(&mut conn, "fish").unwrap();
         assert!(fish_snippets.is_empty());
-    }
-
-    #[test]
-    fn test_add_tag_to_snippet() {
-        let mut conn = create_test_connection();
-
-        let snippet = create_test_snippet(&mut conn, "tag_test", "bash");
-        let tag = create_test_tag(&mut conn, "test-tag");
-
-        let result = add_tag_to_snippet(&mut conn, snippet.id, tag.id);
-        assert!(result.is_ok());
-
-        // Verify the tag is associated
-        let fetched = get_snippet_by_id(&mut conn, snippet.id).unwrap();
-        assert_eq!(fetched.tags.len(), 1);
-        assert_eq!(fetched.tags[0].name, "test-tag");
-    }
-
-    #[test]
-    fn test_add_tag_to_nonexistent_snippet() {
-        let mut conn = create_test_connection();
-
-        let tag = create_test_tag(&mut conn, "orphan-tag");
-
-        let result = add_tag_to_snippet(&mut conn, 999, tag.id);
-        assert!(matches!(result, Err(AppError::SnippetNotFound(999))));
-    }
-
-    #[test]
-    fn test_add_tag_with_nonexistent_tag() {
-        let mut conn = create_test_connection();
-
-        let snippet = create_test_snippet(&mut conn, "tag_test2", "bash");
-
-        let result = add_tag_to_snippet(&mut conn, snippet.id, 999);
-        assert!(matches!(result, Err(AppError::TagNotFound(999))));
-    }
-
-    #[test]
-    fn test_remove_tag_from_snippet() {
-        let mut conn = create_test_connection();
-
-        let snippet = create_test_snippet(&mut conn, "remove_tag_test", "bash");
-        let tag = create_test_tag(&mut conn, "removable-tag");
-
-        // Add then remove
-        add_tag_to_snippet(&mut conn, snippet.id, tag.id).unwrap();
-        let result = remove_tag_from_snippet(&mut conn, snippet.id, tag.id);
-        assert!(result.is_ok());
-
-        // Verify tag is removed
-        let fetched = get_snippet_by_id(&mut conn, snippet.id).unwrap();
-        assert!(fetched.tags.is_empty());
-    }
-
-    #[test]
-    fn test_snippet_with_multiple_tags() {
-        let mut conn = create_test_connection();
-
-        let snippet = create_test_snippet(&mut conn, "multi_tag", "bash");
-        let tag1 = create_test_tag(&mut conn, "tag-a");
-        let tag2 = create_test_tag(&mut conn, "tag-b");
-        let tag3 = create_test_tag(&mut conn, "tag-c");
-
-        add_tag_to_snippet(&mut conn, snippet.id, tag1.id).unwrap();
-        add_tag_to_snippet(&mut conn, snippet.id, tag2.id).unwrap();
-        add_tag_to_snippet(&mut conn, snippet.id, tag3.id).unwrap();
-
-        let fetched = get_snippet_by_id(&mut conn, snippet.id).unwrap();
-        assert_eq!(fetched.tags.len(), 3);
     }
 }

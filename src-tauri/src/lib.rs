@@ -9,9 +9,8 @@ use std::sync::Mutex;
 
 use config::AppPaths;
 use commands::{
-    add_tag_to_snippet, create_snippet, create_tag, delete_snippet, delete_tag,
-    get_output_directory, get_shell_info, get_snippet, get_snippets, get_source_line, get_tags,
-    open_file_in_editor, open_output_directory, remove_tag_from_snippet, reorder_snippets,
+    create_snippet, delete_snippet, get_output_directory, get_shell_info, get_snippet,
+    get_snippets, get_source_line, open_file_in_editor, open_output_directory, reorder_snippets,
     sync_all_shells, sync_to_file, toggle_snippet, update_snippet,
 };
 use db::connection::{establish_connection, run_migrations};
@@ -49,12 +48,6 @@ pub fn run() {
             delete_snippet,
             toggle_snippet,
             reorder_snippets,
-            // Tag operations
-            get_tags,
-            create_tag,
-            delete_tag,
-            add_tag_to_snippet,
-            remove_tag_from_snippet,
             // Sync operations
             sync_to_file,
             sync_all_shells,

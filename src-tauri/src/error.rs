@@ -9,9 +9,6 @@ pub enum AppError {
     #[error("Snippet not found with id: {0}")]
     SnippetNotFound(i32),
 
-    #[error("Tag not found with id: {0}")]
-    TagNotFound(i32),
-
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 

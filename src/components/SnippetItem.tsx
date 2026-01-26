@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -15,7 +14,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { SnippetCodeBlock } from './SnippetCodeBlock';
 import { DragHandle } from './DragHandle';
-import { TagPicker } from './TagPicker';
 import type { Snippet } from '@/types/snippet';
 import { cn } from '@/lib/utils';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -95,25 +93,6 @@ export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, d
                 <span className="text-xs text-muted-foreground">
                   {snippet.enabled ? 'Enabled' : 'Disabled'}
                 </span>
-              </div>
-
-              {/* Tags */}
-              <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                {snippet.tags.map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    variant="secondary"
-                    className="text-xs font-[var(--font-mono)]"
-                    style={{
-                      backgroundColor: tag.color ? `${tag.color}20` : undefined,
-                      borderColor: tag.color ? `${tag.color}40` : undefined,
-                      color: tag.color || undefined,
-                    }}
-                  >
-                    {tag.name}
-                  </Badge>
-                ))}
-                <TagPicker snippetId={snippet.id} currentTags={snippet.tags} />
               </div>
             </div>
 

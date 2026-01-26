@@ -123,11 +123,10 @@ pub struct SnippetResponse {
     pub sort_order: i32,
     pub created_at: String,
     pub updated_at: String,
-    pub tags: Vec<super::tag::TagResponse>,
 }
 
 impl SnippetResponse {
-    pub fn from_snippet(snippet: Snippet, tags: Vec<super::tag::TagResponse>) -> Self {
+    pub fn from_snippet(snippet: Snippet) -> Self {
         let enabled = snippet.is_enabled();
         SnippetResponse {
             id: snippet.id,
@@ -139,7 +138,6 @@ impl SnippetResponse {
             sort_order: snippet.sort_order,
             created_at: snippet.created_at,
             updated_at: snippet.updated_at,
-            tags,
         }
     }
 }

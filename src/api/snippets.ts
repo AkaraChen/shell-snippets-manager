@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { Snippet, NewSnippet, UpdateSnippet, ShellType, Tag, NewTag, ShellInfo } from '../types/snippet';
+import type { Snippet, NewSnippet, UpdateSnippet, ShellType, ShellInfo } from '../types/snippet';
 
 export const snippetApi = {
   // Snippet CRUD
@@ -18,22 +18,6 @@ export const snippetApi = {
 
   reorder: (order: [number, number][]) =>
     invoke<void>('reorder_snippets', { order }),
-};
-
-export const tagApi = {
-  // Tag CRUD
-  getAll: () => invoke<Tag[]>('get_tags'),
-
-  create: (tag: NewTag) => invoke<Tag>('create_tag', { tag }),
-
-  delete: (id: number) => invoke<void>('delete_tag', { id }),
-
-  // Snippet-Tag associations
-  addToSnippet: (snippetId: number, tagId: number) =>
-    invoke<void>('add_tag_to_snippet', { snippetId, tagId }),
-
-  removeFromSnippet: (snippetId: number, tagId: number) =>
-    invoke<void>('remove_tag_from_snippet', { snippetId, tagId }),
 };
 
 export const syncApi = {
