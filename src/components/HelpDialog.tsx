@@ -90,21 +90,18 @@ function HelpDialogContent() {
     }
   };
 
-  const handleOpenConfigFile = async (filePath: string) => {
+  const handleCopyConfigPath = async (filePath: string) => {
     try {
       // Copy file path to clipboard
       await navigator.clipboard.writeText(filePath);
 
-      // Open in editor
-      await syncApi.openFileInEditor(filePath);
-
       // Show success toast with copied path
-      toast.success('Copied file path and opening in editor', {
+      toast.success('Copied file path', {
         description: filePath,
       });
     } catch (error) {
-      console.error('Failed to open file:', error);
-      toast.error('Failed to open file in editor');
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy file path');
     }
   };
 
@@ -156,7 +153,7 @@ function HelpDialogContent() {
                   <p className="text-sm text-foreground">
                     Add these lines to your{' '}
                     <button
-                      onClick={() => handleOpenConfigFile(config.rcFile)}
+                      onClick={() => handleCopyConfigPath(config.rcFile)}
                       className="font-[var(--font-mono)] text-success hover:underline focus:outline-none"
                     >
                       {config.rcFile}
