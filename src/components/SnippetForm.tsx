@@ -127,7 +127,7 @@ export function SnippetForm({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="alias ll='ls -la'"
-          className="font-[var(--font-mono)] min-h-[120px] bg-code-bg text-success border-code-border placeholder:text-muted-foreground"
+          className="font-[var(--font-mono)] min-h-[120px]"
           required
         />
       </div>
