@@ -1,7 +1,7 @@
 import { useState, useMemo, Suspense } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Toaster } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/Header';
 import { SnippetList } from '@/components/SnippetList';
 import { CreateSnippetDialog } from '@/components/CreateSnippetDialog';
