@@ -8,14 +8,16 @@ interface SnippetListProps {
   snippets: Snippet[];
   loading: boolean;
   onToggle: (id: number) => void;
+  onEdit: (snippet: Snippet) => void;
+  onDelete: (id: number) => void;
   onReorder: (fromIndex: number, toIndex: number) => void;
 }
 
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-16 h-16 rounded-full bg-[var(--code-bg)] border border-[var(--code-border)] flex items-center justify-center mb-4">
-        <FileCode className="w-8 h-8 text-[var(--terminal-dim)]" />
+      <div className="w-16 h-16 rounded-full bg-code-bg border border-code-border flex items-center justify-center mb-4">
+        <FileCode className="w-8 h-8 text-muted-foreground" />
       </div>
       <h3 className="text-lg font-[var(--font-mono)] text-foreground mb-2">
         No snippets yet
@@ -33,7 +35,7 @@ function LoadingSkeleton() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="border border-[var(--code-border)] rounded-lg p-4 animate-pulse"
+          className="border border-code-border rounded-lg p-4 animate-pulse"
         >
           <div className="flex items-center gap-3">
             <div className="w-12 h-5 bg-muted rounded" />
@@ -45,7 +47,7 @@ function LoadingSkeleton() {
   );
 }
 
-export function SnippetList({ snippets, loading, onToggle, onReorder }: SnippetListProps) {
+export function SnippetList({ snippets, loading, onToggle, onEdit, onDelete, onReorder }: SnippetListProps) {
   // Local state for immediate visual feedback during drag
   const [localSnippets, setLocalSnippets] = useState<Snippet[]>(snippets);
 
@@ -98,6 +100,8 @@ export function SnippetList({ snippets, loading, onToggle, onReorder }: SnippetL
             index={index}
             snippet={snippet}
             onToggle={onToggle}
+            onEdit={onEdit}
+            onDelete={onDelete}
             moveSnippet={moveSnippet}
             onDragEnd={handleDragEnd}
           />
