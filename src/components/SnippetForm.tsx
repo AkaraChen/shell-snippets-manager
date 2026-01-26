@@ -10,9 +10,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useShellInfo } from '@/hooks/useShellInfo';
 import { Plus } from 'lucide-react';
 import type { Snippet, NewSnippet, UpdateSnippet } from '@/types/snippet';
+
+const SNIPPET_TEMPLATES = {
+  alias: {
+    label: 'Alias',
+    content: "alias name='command'",
+  },
+  // Future templates can be added here
+} as const;
 
 function capitalizeShellName(shell: string): string {
   const specialCases: Record<string, string> = {
@@ -51,6 +75,8 @@ export function SnippetForm({
   const [description, setDescription] = useState(initialData?.description ?? '');
   const [showDescriptionField, setShowDescriptionField] = useState(!!initialData?.description);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const [showTemplateConfirm, setShowTemplateConfirm] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState<keyof typeof SNIPPET_TEMPLATES | null>(null);
 
   // Update shell type when default becomes available (for create mode)
   useEffect(() => {
@@ -75,6 +101,35 @@ export function SnippetForm({
   const handleShowDescription = () => {
     setShowDescriptionField(true);
     setTimeout(() => descriptionRef.current?.focus(), 0);
+  };
+
+  const insertTemplate = (templateKey: keyof typeof SNIPPET_TEMPLATES) => {
+    const template = SNIPPET_TEMPLATES[templateKey];
+    setContent(template.content);
+  };
+
+  const handleTemplateSelect = (templateKey: keyof typeof SNIPPET_TEMPLATES) => {
+    if (content.trim()) {
+      // Content exists, show confirmation dialog
+      setPendingTemplate(templateKey);
+      setShowTemplateConfirm(true);
+    } else {
+      // No content, insert directly
+      insertTemplate(templateKey);
+    }
+  };
+
+  const handleConfirmTemplate = () => {
+    if (pendingTemplate) {
+      insertTemplate(pendingTemplate);
+      setPendingTemplate(null);
+    }
+    setShowTemplateConfirm(false);
+  };
+
+  const handleCancelTemplate = () => {
+    setPendingTemplate(null);
+    setShowTemplateConfirm(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -119,9 +174,35 @@ export function SnippetForm({
 
       {/* Content */}
       <div className="space-y-2">
-        <Label htmlFor="content" className="text-xs uppercase tracking-wider text-muted-foreground">
-          Command / Code *
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="content" className="text-xs uppercase tracking-wider text-muted-foreground">
+            Command / Code *
+          </Label>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Fill with Template
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="font-[var(--font-mono)]">
+              {Object.entries(SNIPPET_TEMPLATES).map(([key, template]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => handleTemplateSelect(key as keyof typeof SNIPPET_TEMPLATES)}
+                >
+                  {template.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         <Textarea
           id="content"
           value={content}
@@ -204,6 +285,22 @@ export function SnippetForm({
             : mode === 'create' ? 'Create Snippet' : 'Save Changes'}
         </Button>
       </div>
+
+      {/* Template Confirmation Dialog */}
+      <AlertDialog open={showTemplateConfirm} onOpenChange={setShowTemplateConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Replace existing content?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will replace your current content with the selected template. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelTemplate}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmTemplate}>Replace</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }
