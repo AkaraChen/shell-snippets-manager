@@ -19,14 +19,6 @@ const shellConfig: Record<ShellType, { label: string; colorClass: string }> = {
     label: 'fish',
     colorClass: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
   },
-  sh: {
-    label: 'sh',
-    colorClass: 'bg-zinc-500/15 text-zinc-500 border-zinc-500/30',
-  },
-  powershell: {
-    label: 'pwsh',
-    colorClass: 'bg-violet-500/15 text-violet-500 border-violet-500/30',
-  },
 };
 
 export function ShellTypeBadge({ shellType, className }: ShellTypeBadgeProps) {

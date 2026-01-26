@@ -119,7 +119,6 @@ pub fn get_source_line(shell: &ShellType, output_dir: &PathBuf) -> String {
 
     match shell {
         ShellType::Fish => format!("source \"{}\"", file_path.display()),
-        ShellType::Powershell => format!(". \"{}\"", file_path.display()),
         _ => format!(
             "[ -f \"{}\" ] && source \"{}\"",
             file_path.display(),
@@ -167,12 +166,6 @@ mod tests {
     }
 
     #[test]
-    fn test_get_output_filename_powershell() {
-        let filename = get_output_filename(&ShellType::Powershell);
-        assert_eq!(filename, "snippets-manager-powershell.ps1");
-    }
-
-    #[test]
     fn test_get_source_line_bash() {
         let dir = PathBuf::from("/home/user/.config/shell-snippets-manager");
         let source_line = get_source_line(&ShellType::Bash, &dir);
@@ -189,15 +182,6 @@ mod tests {
 
         assert!(source_line.starts_with("source \""));
         assert!(source_line.contains("snippets-manager-fish.fish"));
-    }
-
-    #[test]
-    fn test_get_source_line_powershell() {
-        let dir = PathBuf::from("/home/user/.config/shell-snippets-manager");
-        let source_line = get_source_line(&ShellType::Powershell, &dir);
-
-        assert!(source_line.starts_with(". \""));
-        assert!(source_line.contains("snippets-manager-powershell.ps1"));
     }
 
     #[test]

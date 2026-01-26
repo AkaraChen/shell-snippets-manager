@@ -10,8 +10,6 @@ pub enum ShellType {
     Bash,
     Zsh,
     Fish,
-    Sh,
-    Powershell,
 }
 
 impl ShellType {
@@ -20,15 +18,12 @@ impl ShellType {
             ShellType::Bash => "bash",
             ShellType::Zsh => "zsh",
             ShellType::Fish => "fish",
-            ShellType::Sh => "sh",
-            ShellType::Powershell => "powershell",
         }
     }
 
     pub fn file_extension(&self) -> &'static str {
         match self {
             ShellType::Fish => "fish",
-            ShellType::Powershell => "ps1",
             _ => "sh",
         }
     }
@@ -38,8 +33,6 @@ impl ShellType {
             ShellType::Bash,
             ShellType::Zsh,
             ShellType::Fish,
-            ShellType::Sh,
-            ShellType::Powershell,
         ]
     }
 }
@@ -50,8 +43,6 @@ impl From<String> for ShellType {
             "bash" => ShellType::Bash,
             "zsh" => ShellType::Zsh,
             "fish" => ShellType::Fish,
-            "sh" => ShellType::Sh,
-            "powershell" => ShellType::Powershell,
             _ => ShellType::Bash,
         }
     }

@@ -165,7 +165,6 @@ pub fn sync_all_shells(
         ShellType::Bash,
         ShellType::Zsh,
         ShellType::Fish,
-        ShellType::Sh,
     ];
 
     let mut output_paths = Vec::new();

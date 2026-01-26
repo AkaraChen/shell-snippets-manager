@@ -12,14 +12,9 @@ import {
 
 function capitalizeShellName(shell: string): string {
   const specialCases: Record<string, string> = {
-    sh: 'POSIX Shell',
-    zsh: 'Zsh',
     bash: 'Bash',
+    zsh: 'Zsh',
     fish: 'Fish',
-    ksh: 'Ksh',
-    csh: 'Csh',
-    tcsh: 'Tcsh',
-    dash: 'Dash',
   };
   return specialCases[shell] ?? shell.charAt(0).toUpperCase() + shell.slice(1);
 }

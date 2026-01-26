@@ -14,14 +14,9 @@ import { RefreshCw, Loader2, ChevronDown, Terminal } from 'lucide-react';
 
 function capitalizeShellName(shell: string): string {
   const specialCases: Record<string, string> = {
-    sh: 'POSIX sh',
-    zsh: 'Zsh',
     bash: 'Bash',
+    zsh: 'Zsh',
     fish: 'Fish',
-    ksh: 'Ksh',
-    csh: 'Csh',
-    tcsh: 'Tcsh',
-    dash: 'Dash',
   };
   return specialCases[shell] ?? shell;
 }

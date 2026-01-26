@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Shell Snippets Manager is a Tauri 2 desktop application for managing shell script snippets across multiple shell environments (Bash, Zsh, Fish, POSIX sh, PowerShell). It features a React frontend with a Rust backend using SQLite for persistence.
+Shell Snippets Manager is a Tauri 2 desktop application for managing shell script snippets across multiple shell environments (Bash, Zsh, Fish). It features a React frontend with a Rust backend using SQLite for persistence.
 
 ## Development Commands
 
@@ -76,7 +76,7 @@ Frontend components → Custom hooks → API layer (`invoke()`) → Tauri comman
 
 ## Shell Types
 
-The `ShellType` enum (Rust) and union type (TypeScript) support: `bash`, `zsh`, `fish`, `posix`, `powershell`
+The `ShellType` enum (Rust) and union type (TypeScript) support: `bash`, `zsh`, `fish`
 
 ## Testing
 

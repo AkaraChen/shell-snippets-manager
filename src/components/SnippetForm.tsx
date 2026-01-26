@@ -40,14 +40,9 @@ const SNIPPET_TEMPLATES = {
 
 function capitalizeShellName(shell: string): string {
   const specialCases: Record<string, string> = {
-    sh: 'POSIX Shell (sh)',
-    zsh: 'Zsh',
     bash: 'Bash',
+    zsh: 'Zsh',
     fish: 'Fish',
-    ksh: 'Ksh',
-    csh: 'Csh',
-    tcsh: 'Tcsh',
-    dash: 'Dash',
   };
   return specialCases[shell] ?? shell;
 }

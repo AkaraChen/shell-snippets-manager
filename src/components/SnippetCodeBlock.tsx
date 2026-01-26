@@ -13,9 +13,7 @@ interface SnippetCodeBlockProps {
 const shellToLanguage: Record<ShellType, string> = {
   bash: 'bash',
   zsh: 'zsh',
-  sh: 'shellscript',
   fish: 'fish',
-  powershell: 'powershell',
 };
 
 export function SnippetCodeBlock({ content, shellType, className }: SnippetCodeBlockProps) {

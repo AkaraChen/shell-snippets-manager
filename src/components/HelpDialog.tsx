@@ -43,20 +43,6 @@ const SHELL_CONFIGS: Record<string, ShellConfig> = {
     filename: 'snippets-manager-fish.fish',
     language: 'fish',
   },
-  sh: {
-    name: 'POSIX sh',
-    icon: '$',
-    rcFile: '~/.profile',
-    filename: 'snippets-manager-sh.sh',
-    language: 'shellscript',
-  },
-  powershell: {
-    name: 'PowerShell',
-    icon: 'PS>',
-    rcFile: '$PROFILE',
-    filename: 'snippets-manager-powershell.ps1',
-    language: 'powershell',
-  },
 };
 
 interface HelpDialogProps {
