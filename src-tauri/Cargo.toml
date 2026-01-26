@@ -33,3 +33,6 @@ chrono = { version = "0.4", features = ["serde"] }
 # Error handling
 thiserror = "1.0"
 
+[dev-dependencies]
+tempfile = "3"
+
