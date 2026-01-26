@@ -1,4 +1,9 @@
-export type ShellType = 'bash' | 'zsh' | 'fish' | 'sh' | 'powershell';
+export type ShellType = string;
+
+export interface ShellInfo {
+  available_shells: string[];
+  default_shell: string;
+}
 
 export interface Tag {
   id: number;
