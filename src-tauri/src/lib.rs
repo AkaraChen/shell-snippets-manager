@@ -8,7 +8,7 @@ use std::sync::Mutex;
 
 use commands::{
     add_tag_to_snippet, create_snippet, create_tag, delete_snippet, delete_tag,
-    get_output_directory, get_snippet, get_snippets, get_source_line, get_tags,
+    get_output_directory, get_shell_info, get_snippet, get_snippets, get_source_line, get_tags,
     remove_tag_from_snippet, reorder_snippets, sync_all_shells, sync_to_file, toggle_snippet,
     update_snippet,
 };
@@ -52,6 +52,8 @@ pub fn run() {
             sync_all_shells,
             get_source_line,
             get_output_directory,
+            // Shell info
+            get_shell_info,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

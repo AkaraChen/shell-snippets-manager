@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { Snippet, NewSnippet, UpdateSnippet, ShellType, Tag, NewTag } from '../types/snippet';
+import type { Snippet, NewSnippet, UpdateSnippet, ShellType, Tag, NewTag, ShellInfo } from '../types/snippet';
 
 export const snippetApi = {
   // Snippet CRUD
@@ -47,4 +47,8 @@ export const syncApi = {
     invoke<string>('get_source_line', { shellType }),
 
   getOutputDirectory: () => invoke<string>('get_output_directory'),
+};
+
+export const shellApi = {
+  getShellInfo: () => invoke<ShellInfo>('get_shell_info'),
 };

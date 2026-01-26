@@ -1,5 +1,8 @@
+use std::collections::HashSet;
+
 use diesel::prelude::*;
 use diesel::SqliteConnection;
+use serde::Serialize;
 use tauri::State;
 
 use crate::db::schema::snippet_tags::dsl as st_dsl;
@@ -219,4 +222,37 @@ fn get_tag_names_for_snippet(conn: &mut SqliteConnection, snippet_id: i32) -> Re
         .load(conn)?;
 
     Ok(tags.into_iter().map(|t| t.name).collect())
+}
+
+// ============================================================================
+// Shell Info Commands
+// ============================================================================
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ShellInfo {
+    pub available_shells: Vec<String>,
+    pub default_shell: String,
+}
+
+/// Get available shells from /etc/shells and detect user's default shell
+#[tauri::command]
+pub fn get_shell_info() -> ShellInfo {
+    let available_shells: Vec<String> = std::fs::read_to_string("/etc/shells")
+        .unwrap_or_default()
+        .lines()
+        .filter(|line| !line.trim().is_empty() && !line.starts_with('#'))
+        .filter_map(|path| path.rsplit('/').next().map(String::from))
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect();
+
+    let default_shell = std::env::var("SHELL")
+        .ok()
+        .and_then(|s| s.rsplit('/').next().map(String::from))
+        .unwrap_or_else(|| "bash".to_string());
+
+    ShellInfo {
+        available_shells,
+        default_shell,
+    }
 }
