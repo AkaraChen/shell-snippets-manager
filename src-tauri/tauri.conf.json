@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "shell-snippets-manager",
+  "productName": "Shell Snippets Manager",
   "version": "0.1.0",
   "identifier": "com.akrc.shell-snippets-manager",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "shell-snippets-manager",
+        "title": "Shell Snippets Manager",
         "width": 800,
         "height": 600,
         "dragDropEnabled": false
