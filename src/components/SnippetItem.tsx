@@ -73,12 +73,7 @@ export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, d
 
             {/* Description */}
             {snippet.description && (
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Description
-                </span>
-                <p className="text-sm text-foreground/80">{snippet.description}</p>
-              </div>
+              <p className="text-sm text-foreground/80">{snippet.description}</p>
             )}
 
             {/* Actions and toggle row */}
