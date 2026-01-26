@@ -121,3 +121,61 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Terminal-inspired custom properties */
+:root {
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+
+  /* Terminal accent colors */
+  --terminal-green: oklch(0.75 0.18 145);
+  --terminal-cyan: oklch(0.78 0.15 195);
+  --terminal-yellow: oklch(0.85 0.15 85);
+  --terminal-red: oklch(0.65 0.20 25);
+  --terminal-purple: oklch(0.70 0.18 300);
+  --terminal-orange: oklch(0.75 0.16 55);
+  --terminal-dim: oklch(0.55 0 0);
+
+  /* Code block styling */
+  --code-bg: oklch(0.13 0.01 260);
+  --code-border: oklch(0.25 0.02 145);
+  --code-glow: oklch(0.75 0.18 145 / 0.12);
+}
+
+.dark {
+  --terminal-green: oklch(0.72 0.20 145);
+  --terminal-cyan: oklch(0.75 0.17 195);
+  --terminal-yellow: oklch(0.82 0.16 85);
+  --terminal-red: oklch(0.68 0.22 25);
+  --terminal-purple: oklch(0.68 0.20 300);
+  --terminal-orange: oklch(0.72 0.18 55);
+  --terminal-dim: oklch(0.50 0 0);
+
+  --code-bg: oklch(0.10 0.01 260);
+  --code-border: oklch(0.22 0.03 145);
+  --code-glow: oklch(0.72 0.20 145 / 0.15);
+}
+
+/* Custom scrollbar for code blocks */
+.code-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.code-scrollbar::-webkit-scrollbar-track {
+  background: oklch(0.15 0 0);
+  border-radius: 4px;
+}
+
+.code-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(0.30 0 0);
+  border-radius: 4px;
+}
+
+.code-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.40 0 0);
+}
+
+/* Utility classes */
+.font-mono {
+  font-family: var(--font-mono);
+}
