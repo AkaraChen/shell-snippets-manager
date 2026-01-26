@@ -13,7 +13,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ShellTypeBadge } from './ShellTypeBadge';
 import { SnippetCodeBlock } from './SnippetCodeBlock';
 import { DragHandle } from './DragHandle';
 import { TagPicker } from './TagPicker';
@@ -55,7 +54,6 @@ export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, d
             <div ref={dragRef as React.Ref<HTMLDivElement>}>
               <DragHandle />
             </div>
-            <ShellTypeBadge shellType={snippet.shell_type} />
             <span
               className={cn(
                 'font-[var(--font-mono)] text-sm truncate',
