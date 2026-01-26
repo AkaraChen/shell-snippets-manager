@@ -41,7 +41,7 @@ cd src-tauri && diesel migration run
 The Rust backend follows a three-layer architecture:
 
 1. **Commands Layer** (`src-tauri/src/commands/`): Tauri command handlers that expose IPC endpoints to the frontend
-2. **Services Layer** (`src-tauri/src/services/`): Business logic - `snippet_service`, `tag_service`, `sync_service`
+2. **Services Layer** (`src-tauri/src/services/`): Business logic - `snippet_service`, `sync_service`
 3. **Models Layer** (`src-tauri/src/models/`): Diesel ORM models with `Queryable`, `Insertable`, `AsChangeset` traits
 
 ### Frontend Structure
@@ -80,4 +80,4 @@ The `ShellType` enum (Rust) and union type (TypeScript) support: `bash`, `zsh`, 
 
 ## Testing
 
-Backend has 40 unit tests in the services layer. Tests use in-memory SQLite databases via `test_helpers.rs`.
+Backend has unit tests in the services layer. Tests use in-memory SQLite databases via `test_helpers.rs`.
