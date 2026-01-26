@@ -118,10 +118,12 @@ pub fn get_source_line(shell: &ShellType, output_dir: &PathBuf) -> String {
     let file_path = output_dir.join(&filename);
 
     match shell {
-        ShellType::Fish => format!("source \"{}\"", file_path.display()),
+        ShellType::Fish => format!(
+            "set SNIPPETS_FILE \"{}\"\ntest -f \"$SNIPPETS_FILE\"; and \\\n    source \"$SNIPPETS_FILE\"",
+            file_path.display()
+        ),
         _ => format!(
-            "[ -f \"{}\" ] && source \"{}\"",
-            file_path.display(),
+            "SNIPPETS_FILE=\"{}\"\n[ -f \"$SNIPPETS_FILE\" ] && \\\n    source \"$SNIPPETS_FILE\"",
             file_path.display()
         ),
     }
@@ -170,8 +172,9 @@ mod tests {
         let dir = PathBuf::from("/home/user/.config/shell-snippets-manager");
         let source_line = get_source_line(&ShellType::Bash, &dir);
 
-        assert!(source_line.contains("[ -f"));
-        assert!(source_line.contains("&& source"));
+        assert!(source_line.contains("SNIPPETS_FILE="));
+        assert!(source_line.contains("[ -f \"$SNIPPETS_FILE\" ]"));
+        assert!(source_line.contains("source \"$SNIPPETS_FILE\""));
         assert!(source_line.contains("snippets-manager-bash.sh"));
     }
 
@@ -180,7 +183,9 @@ mod tests {
         let dir = PathBuf::from("/home/user/.config/shell-snippets-manager");
         let source_line = get_source_line(&ShellType::Fish, &dir);
 
-        assert!(source_line.starts_with("source \""));
+        assert!(source_line.contains("set SNIPPETS_FILE"));
+        assert!(source_line.contains("test -f \"$SNIPPETS_FILE\""));
+        assert!(source_line.contains("source \"$SNIPPETS_FILE\""));
         assert!(source_line.contains("snippets-manager-fish.fish"));
     }
 
