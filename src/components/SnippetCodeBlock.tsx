@@ -33,7 +33,7 @@ export function SnippetCodeBlock({ content, shellType, className }: SnippetCodeB
     <div
       className={cn(
         'relative group rounded-lg overflow-hidden',
-        'bg-[var(--code-bg)] border border-[var(--code-border)]',
+        'bg-code-bg border border-code-border',
         className
       )}
     >
@@ -43,14 +43,14 @@ export function SnippetCodeBlock({ content, shellType, className }: SnippetCodeB
         className={cn(
           'absolute top-2 right-2 z-10 p-1.5 rounded-md',
           'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
-          'bg-[var(--terminal-dim)]/20 hover:bg-[var(--terminal-dim)]/40',
-          'text-[var(--terminal-dim)] hover:text-[var(--terminal-green)]',
-          'focus:outline-none focus:ring-1 focus:ring-[var(--terminal-green)]/50'
+          'bg-muted-foreground/20 hover:bg-muted-foreground/40',
+          'text-muted-foreground hover:text-success',
+          'focus:outline-none focus:ring-1 focus:ring-success/50'
         )}
         title="Copy to clipboard"
       >
         {copied ? (
-          <Check className="w-4 h-4 text-[var(--terminal-green)]" />
+          <Check className="w-4 h-4 text-success" />
         ) : (
           <Copy className="w-4 h-4" />
         )}

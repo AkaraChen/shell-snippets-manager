@@ -17,6 +17,8 @@ interface DraggableSnippetItemProps {
   snippet: Snippet;
   index: number;
   onToggle: (id: number) => void;
+  onEdit: (snippet: Snippet) => void;
+  onDelete: (id: number) => void;
   moveSnippet: (dragIndex: number, hoverIndex: number) => void;
   onDragEnd: (fromIndex: number, toIndex: number) => void;
 }
@@ -25,6 +27,8 @@ export function DraggableSnippetItem({
   snippet,
   index,
   onToggle,
+  onEdit,
+  onDelete,
   moveSnippet,
   onDragEnd,
 }: DraggableSnippetItemProps) {
@@ -114,12 +118,14 @@ export function DraggableSnippetItem({
       className={cn(
         'transition-all duration-150',
         isDragging && 'opacity-40 scale-[0.98]',
-        isOver && !isDragging && 'ring-2 ring-[var(--terminal-green)]/50'
+        isOver && !isDragging && 'ring-2 ring-success/50'
       )}
     >
       <SnippetItem
         snippet={snippet}
         onToggle={onToggle}
+        onEdit={onEdit}
+        onDelete={onDelete}
         isDragging={isDragging}
         dragRef={drag}
       />

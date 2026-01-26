@@ -1,82 +1,105 @@
+import { useState } from 'react';
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ShellTypeBadge } from './ShellTypeBadge';
 import { SnippetCodeBlock } from './SnippetCodeBlock';
 import { DragHandle } from './DragHandle';
+import { TagPicker } from './TagPicker';
 import type { Snippet } from '@/types/snippet';
 import { cn } from '@/lib/utils';
+import { Pencil, Trash2 } from 'lucide-react';
 
 interface SnippetItemProps {
   snippet: Snippet;
   onToggle: (id: number) => void;
+  onEdit: (snippet: Snippet) => void;
+  onDelete: (id: number) => void;
   isDragging?: boolean;
   dragRef?: (element: HTMLElement | null) => void;
 }
 
-export function SnippetItem({ snippet, onToggle, isDragging, dragRef }: SnippetItemProps) {
+export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, dragRef }: SnippetItemProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleDelete = () => {
+    onDelete(snippet.id);
+    setShowDeleteConfirm(false);
+  };
+
   return (
-    <AccordionItem
-      value={`snippet-${snippet.id}`}
-      className={cn(
-        'border border-[var(--code-border)] rounded-lg mb-2 overflow-hidden',
-        'bg-card/50 hover:bg-card/80 transition-colors',
-        !snippet.enabled && 'opacity-60',
-        isDragging && 'shadow-lg ring-2 ring-[var(--terminal-green)]/30'
-      )}
-    >
-      <AccordionTrigger className="px-4 py-3 hover:no-underline">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          {/* Drag handle - attach drag ref here */}
-          <div ref={dragRef as React.Ref<HTMLDivElement>}>
-            <DragHandle />
-          </div>
-          <ShellTypeBadge shellType={snippet.shell_type} />
-          <span
-            className={cn(
-              'font-[var(--font-mono)] text-sm truncate',
-              !snippet.enabled && 'line-through text-muted-foreground'
+    <>
+      <AccordionItem
+        value={`snippet-${snippet.id}`}
+        className={cn(
+          'border border-code-border rounded-lg mb-2 overflow-hidden',
+          'bg-card/50 hover:bg-card/80 transition-colors',
+          !snippet.enabled && 'opacity-60',
+          isDragging && 'shadow-lg ring-2 ring-success/30'
+        )}
+      >
+        <AccordionTrigger className="px-4 py-3 hover:no-underline">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {/* Drag handle - attach drag ref here */}
+            <div ref={dragRef as React.Ref<HTMLDivElement>}>
+              <DragHandle />
+            </div>
+            <ShellTypeBadge shellType={snippet.shell_type} />
+            <span
+              className={cn(
+                'font-[var(--font-mono)] text-sm truncate',
+                !snippet.enabled && 'line-through text-muted-foreground'
+              )}
+            >
+              {snippet.name}
+            </span>
+            {!snippet.enabled && (
+              <span className="text-xs text-muted-foreground">(disabled)</span>
             )}
-          >
-            {snippet.name}
-          </span>
-          {!snippet.enabled && (
-            <span className="text-xs text-muted-foreground">(disabled)</span>
-          )}
-        </div>
-      </AccordionTrigger>
+          </div>
+        </AccordionTrigger>
 
-      <AccordionContent className="px-4 pb-4">
-        <div className="space-y-4">
-          {/* Code block */}
-          <SnippetCodeBlock content={snippet.content} shellType={snippet.shell_type} />
+        <AccordionContent className="px-4 pb-4">
+          <div className="space-y-4">
+            {/* Code block */}
+            <SnippetCodeBlock content={snippet.content} shellType={snippet.shell_type} />
 
-          {/* Description */}
-          {snippet.description && (
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Description
-              </span>
-              <p className="text-sm text-foreground/80">{snippet.description}</p>
-            </div>
-          )}
+            {/* Description */}
+            {snippet.description && (
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Description
+                </span>
+                <p className="text-sm text-foreground/80">{snippet.description}</p>
+              </div>
+            )}
 
-          {/* Meta row: enabled toggle and tags */}
-          <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
-            {/* Enabled toggle */}
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={snippet.enabled}
-                onCheckedChange={() => onToggle(snippet.id)}
-                className="data-[state=checked]:bg-[var(--terminal-green)]"
-              />
-              <span className="text-xs text-muted-foreground">
-                {snippet.enabled ? 'Enabled' : 'Disabled'}
-              </span>
-            </div>
+            {/* Meta row: enabled toggle and tags */}
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-border/50">
+              {/* Enabled toggle */}
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={snippet.enabled}
+                  onCheckedChange={() => onToggle(snippet.id)}
+                  className="data-[state=checked]:bg-success"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {snippet.enabled ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
 
-            {/* Tags */}
-            {snippet.tags.length > 0 && (
+              {/* Tags */}
               <div className="flex items-center gap-1.5 flex-wrap justify-end">
                 {snippet.tags.map((tag) => (
                   <Badge
@@ -92,11 +115,57 @@ export function SnippetItem({ snippet, onToggle, isDragging, dragRef }: SnippetI
                     {tag.name}
                   </Badge>
                 ))}
+                <TagPicker snippetId={snippet.id} currentTags={snippet.tags} />
               </div>
-            )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 pt-3 border-t border-border/30">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(snippet)}
+                className="text-muted-foreground hover:text-foreground hover:bg-success/10"
+              >
+                <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                Edit
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                Delete
+              </Button>
+            </div>
           </div>
-        </div>
-      </AccordionContent>
-    </AccordionItem>
+        </AccordionContent>
+      </AccordionItem>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent className="border-code-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-[var(--font-mono)]">
+              Delete snippet?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <span className="font-[var(--font-mono)] text-foreground">"{snippet.name}"</span>. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

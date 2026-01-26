@@ -9,23 +9,23 @@ interface ShellTypeBadgeProps {
 const shellConfig: Record<ShellType, { label: string; colorClass: string }> = {
   bash: {
     label: 'bash',
-    colorClass: 'bg-[var(--terminal-green)]/15 text-[var(--terminal-green)] border-[var(--terminal-green)]/30',
+    colorClass: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
   },
   zsh: {
     label: 'zsh',
-    colorClass: 'bg-[var(--terminal-cyan)]/15 text-[var(--terminal-cyan)] border-[var(--terminal-cyan)]/30',
+    colorClass: 'bg-cyan-500/15 text-cyan-500 border-cyan-500/30',
   },
   fish: {
     label: 'fish',
-    colorClass: 'bg-[var(--terminal-yellow)]/15 text-[var(--terminal-yellow)] border-[var(--terminal-yellow)]/30',
+    colorClass: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
   },
   sh: {
     label: 'sh',
-    colorClass: 'bg-[var(--terminal-dim)]/15 text-[var(--terminal-dim)] border-[var(--terminal-dim)]/30',
+    colorClass: 'bg-zinc-500/15 text-zinc-500 border-zinc-500/30',
   },
   powershell: {
     label: 'pwsh',
-    colorClass: 'bg-[var(--terminal-purple)]/15 text-[var(--terminal-purple)] border-[var(--terminal-purple)]/30',
+    colorClass: 'bg-violet-500/15 text-violet-500 border-violet-500/30',
   },
 };
 
