@@ -5,9 +5,10 @@ use diesel::SqliteConnection;
 use serde::Serialize;
 use tauri::State;
 
+use crate::config::AppPaths;
 use crate::db::schema::snippet_tags::dsl as st_dsl;
 use crate::db::schema::tags::dsl as tags_dsl;
-use crate::db::{get_output_dir, DbConnection};
+use crate::db::DbConnection;
 use crate::error::AppError;
 use crate::models::{
     NewSnippet, NewTag, ShellType, SnippetResponse, TagResponse, UpdateSnippet, Tag,
@@ -127,13 +128,13 @@ pub fn remove_tag_from_snippet(
 /// Sync enabled snippets to a shell-specific file
 #[tauri::command]
 pub fn sync_to_file(
-    app_handle: tauri::AppHandle,
+    paths: State<'_, AppPaths>,
     db: DbState,
     shell_type: String,
 ) -> Result<String, AppError> {
     let mut conn = db.lock().map_err(|_| AppError::LockError)?;
     let shell: ShellType = shell_type.into();
-    let output_dir = get_output_dir(&app_handle)?;
+    let output_dir = paths.output_dir();
 
     let snippets = snippet_service::get_enabled_snippets_by_shell(&mut conn, shell.as_str())?;
 
@@ -146,7 +147,7 @@ pub fn sync_to_file(
         })
         .collect();
 
-    let output_path = sync_service::sync_to_file(snippets_with_tags, shell, output_dir)?;
+    let output_path = sync_service::sync_to_file(snippets_with_tags, shell, output_dir.to_path_buf())?;
 
     Ok(output_path.display().to_string())
 }
@@ -154,11 +155,11 @@ pub fn sync_to_file(
 /// Sync all shell types at once
 #[tauri::command]
 pub fn sync_all_shells(
-    app_handle: tauri::AppHandle,
+    paths: State<'_, AppPaths>,
     db: DbState,
 ) -> Result<Vec<String>, AppError> {
     let mut conn = db.lock().map_err(|_| AppError::LockError)?;
-    let output_dir = get_output_dir(&app_handle)?;
+    let output_dir = paths.output_dir().to_path_buf();
 
     let shells = vec![
         ShellType::Bash,
@@ -194,18 +195,18 @@ pub fn sync_all_shells(
 /// Get the source line to add to shell rc file
 #[tauri::command]
 pub fn get_source_line(
-    app_handle: tauri::AppHandle,
+    paths: State<'_, AppPaths>,
     shell_type: String,
 ) -> Result<String, AppError> {
     let shell: ShellType = shell_type.into();
-    let output_dir = get_output_dir(&app_handle)?;
+    let output_dir = paths.output_dir();
     Ok(sync_service::get_source_line(&shell, &output_dir))
 }
 
 /// Get the output directory path
 #[tauri::command]
-pub fn get_output_directory(app_handle: tauri::AppHandle) -> Result<String, AppError> {
-    let output_dir = get_output_dir(&app_handle)?;
+pub fn get_output_directory(paths: State<'_, AppPaths>) -> Result<String, AppError> {
+    let output_dir = paths.output_dir();
     Ok(output_dir.display().to_string())
 }
 

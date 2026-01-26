@@ -1,4 +1,5 @@
 mod commands;
+mod config;
 mod db;
 mod error;
 mod models;
@@ -6,6 +7,7 @@ mod services;
 
 use std::sync::Mutex;
 
+use config::AppPaths;
 use commands::{
     add_tag_to_snippet, create_snippet, create_tag, delete_snippet, delete_tag,
     get_output_directory, get_shell_info, get_snippet, get_snippets, get_source_line, get_tags,
@@ -20,15 +22,21 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            // Establish database connection using app handle
-            let mut conn = establish_connection(app.handle())
+            // Initialize XDG-compliant paths
+            let paths = AppPaths::new()
+                .expect("Failed to initialize application paths");
+
+            // Establish database connection using new paths
+            let mut conn = establish_connection(&paths)
                 .expect("Failed to establish database connection");
 
             // Run migrations on startup
-            run_migrations(&mut conn).expect("Failed to run database migrations");
+            run_migrations(&mut conn)
+                .expect("Failed to run database migrations");
 
-            // Store connection in app state
+            // Store both connection and paths in app state
             app.manage(Mutex::new(conn));
+            app.manage(paths);
 
             Ok(())
         })

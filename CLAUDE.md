@@ -57,14 +57,18 @@ Frontend components → Custom hooks → API layer (`invoke()`) → Tauri comman
 
 ### Database
 
-- **Location**: `{APP_DATA_DIR}/snippets.db`
+- **Linux Location**:
+  - Database: `$XDG_DATA_HOME/shell-snippets-manager/snippets.db` (default: `~/.local/share/shell-snippets-manager/`)
+  - Generated files: `$XDG_CONFIG_HOME/shell-snippets-manager/generated/` (default: `~/.config/shell-snippets-manager/`)
+- **macOS Location**: `~/Library/Application Support/com.akrc.shell-snippets-manager/`
 - **Schema**: `snippets`, `tags`, `snippet_tags` (junction table)
 - **Migrations**: `src-tauri/migrations/`
-- **Generated shell files**: `{APP_DATA_DIR}/generated/`
+- **Path Management**: `src-tauri/src/config/paths.rs` (XDG-compliant via `etcetera` crate)
 
 ## Key Files
 
 - `src-tauri/src/lib.rs`: Tauri app setup and command handler registration
+- `src-tauri/src/config/paths.rs`: XDG-compliant path management with `etcetera` crate
 - `src-tauri/src/db/schema.rs`: Diesel schema (auto-generated, do not edit manually)
 - `src-tauri/src/error.rs`: `AppError` enum with `thiserror` derives
 - `src/types/snippet.ts`: TypeScript interfaces matching Rust models
