@@ -1,12 +1,41 @@
 import { Terminal, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SyncButton } from './SyncButton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+function capitalizeShellName(shell: string): string {
+  const specialCases: Record<string, string> = {
+    sh: 'POSIX Shell',
+    zsh: 'Zsh',
+    bash: 'Bash',
+    fish: 'Fish',
+    ksh: 'Ksh',
+    csh: 'Csh',
+    tcsh: 'Tcsh',
+    dash: 'Dash',
+  };
+  return specialCases[shell] ?? shell.charAt(0).toUpperCase() + shell.slice(1);
+}
 
 interface HeaderProps {
   onCreateClick: () => void;
+  selectedShell: string;
+  availableShells: string[];
+  onShellChange: (shell: string) => void;
 }
 
-export function Header({ onCreateClick }: HeaderProps) {
+export function Header({
+  onCreateClick,
+  selectedShell,
+  availableShells,
+  onShellChange,
+}: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-code-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center justify-between px-4 max-w-3xl">
@@ -15,9 +44,26 @@ export function Header({ onCreateClick }: HeaderProps) {
           <div className="flex items-center justify-center w-8 h-8 rounded-md bg-success/10 border border-success/20">
             <Terminal className="w-4 h-4 text-success" />
           </div>
-          <h1 className="text-lg font-semibold font-[var(--font-mono)] tracking-tight">
-            <span className="text-success">Shell</span>
-            <span className="text-foreground"> Snippets Manager</span>
+          <h1 className="text-lg font-semibold font-[var(--font-mono)] tracking-tight flex items-center">
+            <Select value={selectedShell} onValueChange={onShellChange}>
+              <SelectTrigger className="border-none shadow-none bg-transparent! hover:bg-success/10! p-0 h-auto w-auto text-lg font-semibold text-success focus:ring-0 focus-visible:ring-0 gap-1 mr-2 [&>svg]:text-success">
+                <SelectValue>
+                  {capitalizeShellName(selectedShell)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {availableShells.map((shell) => (
+                  <SelectItem
+                    key={shell}
+                    value={shell}
+                    className="font-[var(--font-mono)]"
+                  >
+                    {capitalizeShellName(shell)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-foreground">Snippets Manager</span>
           </h1>
         </div>
 
