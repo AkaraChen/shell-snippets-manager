@@ -15,7 +15,8 @@
         "title": "Shell Snippets Manager",
         "width": 800,
         "height": 600,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "theme": "Dark"
       }
     ],
     "security": {
