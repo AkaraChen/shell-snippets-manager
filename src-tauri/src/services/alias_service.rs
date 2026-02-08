@@ -73,7 +73,7 @@ pub fn create_alias(
     for st in &shell_types {
         let content = generate_alias_content(&alias.name, &alias.command, st);
         let new_snippet = NewSnippet {
-            name: format!("alias:{}", alias.name),
+            name: alias.name.clone(),
             content,
             shell_type: st.clone(),
             description: alias.description.clone(),
