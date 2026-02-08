@@ -155,7 +155,7 @@ pub fn open_output_directory(paths: State<'_, AppPaths>) -> Result<(), AppError>
     std::process::Command::new(command)
         .arg(output_dir)
         .spawn()
-        .map_err(|e| AppError::IoError(e))?;
+        .map_err(AppError::IoError)?;
 
     Ok(())
 }
@@ -197,7 +197,7 @@ pub fn open_file_in_editor(file_path: String) -> Result<(), AppError> {
                 .arg("Terminal")
                 .arg(&expanded_path)
                 .spawn()
-                .map_err(|e| AppError::IoError(e))?;
+                .map_err(AppError::IoError)?;
         }
 
         #[cfg(target_os = "linux")]
@@ -231,14 +231,14 @@ pub fn open_file_in_editor(file_path: String) -> Result<(), AppError> {
             std::process::Command::new("cmd")
                 .args(["/c", "start", &editor, &expanded_path])
                 .spawn()
-                .map_err(|e| AppError::IoError(e))?;
+                .map_err(AppError::IoError)?;
         }
     } else {
         // GUI editor or default system editor
         std::process::Command::new(&editor)
             .arg(&expanded_path)
             .spawn()
-            .map_err(|e| AppError::IoError(e))?;
+            .map_err(AppError::IoError)?;
     }
 
     Ok(())

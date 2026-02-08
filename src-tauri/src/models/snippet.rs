@@ -142,33 +142,3 @@ impl SnippetResponse {
     }
 }
 
-/// Simple response without tags (for internal use)
-#[derive(Debug, Clone, Serialize)]
-pub struct SnippetSimpleResponse {
-    pub id: i32,
-    pub name: String,
-    pub content: String,
-    pub shell_type: String,
-    pub description: Option<String>,
-    pub enabled: bool,
-    pub sort_order: i32,
-    pub created_at: String,
-    pub updated_at: String,
-}
-
-impl From<Snippet> for SnippetSimpleResponse {
-    fn from(s: Snippet) -> Self {
-        let enabled = s.is_enabled();
-        SnippetSimpleResponse {
-            id: s.id,
-            name: s.name,
-            content: s.content,
-            shell_type: s.shell_type,
-            description: s.description,
-            enabled,
-            sort_order: s.sort_order,
-            created_at: s.created_at,
-            updated_at: s.updated_at,
-        }
-    }
-}

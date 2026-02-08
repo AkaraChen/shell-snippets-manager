@@ -47,7 +47,7 @@ pub fn create_snippet(conn: &mut SqliteConnection, new: NewSnippet) -> AppResult
         .values(&new)
         .returning(Snippet::as_returning())
         .get_result(conn)
-        .map(|s| SnippetResponse::from_snippet(s))
+        .map(SnippetResponse::from_snippet)
         .map_err(AppError::from)
 }
 

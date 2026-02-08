@@ -15,9 +15,6 @@ pub enum AppError {
     #[error("Lock error: failed to acquire database lock")]
     LockError,
 
-    #[error("Validation error: {0}")]
-    ValidationError(String),
-
     #[error("Path error: {0}")]
     PathError(String),
 }

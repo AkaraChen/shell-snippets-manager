@@ -91,6 +91,7 @@ impl AppPaths {
     ///
     /// On Linux: $XDG_DATA_HOME/shell-snippets-manager (default: ~/.local/share/shell-snippets-manager)
     /// On macOS: ~/Library/Application Support/com.akrc.shell-snippets-manager
+    #[allow(dead_code)]
     pub fn data_dir(&self) -> &Path {
         &self.data_dir
     }
@@ -99,6 +100,7 @@ impl AppPaths {
     ///
     /// On Linux: $XDG_CONFIG_HOME/shell-snippets-manager (default: ~/.config/shell-snippets-manager)
     /// On macOS: ~/Library/Application Support/com.akrc.shell-snippets-manager (same as data_dir)
+    #[allow(dead_code)]
     pub fn config_dir(&self) -> &Path {
         &self.config_dir
     }

@@ -1,7 +1,7 @@
 use chrono::Utc;
 use std::fs;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::error::AppResult;
 use crate::models::{ShellType, Snippet};
@@ -107,7 +107,7 @@ pub fn sync_to_file(
 }
 
 /// Get the source line to add to shell rc file
-pub fn get_source_line(shell: &ShellType, output_dir: &PathBuf) -> String {
+pub fn get_source_line(shell: &ShellType, output_dir: &Path) -> String {
     let filename = get_output_filename(shell);
     let file_path = output_dir.join(&filename);
 
