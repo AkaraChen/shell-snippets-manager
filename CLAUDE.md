@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Shell Snippets Manager is a Tauri 2 desktop application for managing shell script snippets across multiple shell environments (Bash, Zsh, Fish). It features a React frontend with a Rust backend using SQLite for persistence.
+Shell Snippets Manager is a Tauri 2 desktop application for managing shell script snippets and aliases across multiple shell environments (Bash, Zsh, Fish). It features a React frontend with a Rust backend using SQLite for persistence.
 
 ## Development Commands
 
@@ -40,15 +40,15 @@ cd src-tauri && diesel migration run
 
 The Rust backend follows a three-layer architecture:
 
-1. **Commands Layer** (`src-tauri/src/commands/`): Tauri command handlers that expose IPC endpoints to the frontend
-2. **Services Layer** (`src-tauri/src/services/`): Business logic - `snippet_service`, `sync_service`
+1. **Commands Layer** (`src-tauri/src/commands/`): Tauri command handlers that expose IPC endpoints to the frontend (`snippets.rs`, `aliases.rs`)
+2. **Services Layer** (`src-tauri/src/services/`): Business logic — `snippet_service`, `sync_service`, `alias_service`
 3. **Models Layer** (`src-tauri/src/models/`): Diesel ORM models with `Queryable`, `Insertable`, `AsChangeset` traits
 
 ### Frontend Structure
 
-- **API Layer** (`src/api/snippets.ts`): Wraps Tauri `invoke()` calls in a `snippetApi` object
-- **Custom Hooks** (`src/hooks/`): `useSnippets` for CRUD operations with SWR caching
-- **UI Components** (`src/components/ui/`): shadcn/ui components (new-york style)
+- **API Layer** (`src/api/`): Wraps Tauri `invoke()` calls — `snippetApi` and `aliasApi`
+- **Custom Hooks** (`src/hooks/`): `useSnippets` (SWR for queries), mutation hooks use React Query (`useMutation`)
+- **UI Components** (`src/components/ui/`): shadcn/ui components (new-york style, Tailwind CSS v4)
 - **Path Alias**: `@/` maps to `./src`
 
 ### IPC Flow
@@ -61,7 +61,7 @@ Frontend components → Custom hooks → API layer (`invoke()`) → Tauri comman
   - Database: `$XDG_DATA_HOME/shell-snippets-manager/snippets.db` (default: `~/.local/share/shell-snippets-manager/`)
   - Generated files: `$XDG_CONFIG_HOME/shell-snippets-manager/generated/` (default: `~/.config/shell-snippets-manager/`)
 - **macOS Location**: `~/Library/Application Support/com.akrc.shell-snippets-manager/`
-- **Schema**: `snippets`, `tags`, `snippet_tags` (junction table)
+- **Schema**: `snippets`, `aliases`, `snippet_aliases` (junction table)
 - **Migrations**: `src-tauri/migrations/`
 - **Path Management**: `src-tauri/src/config/paths.rs` (XDG-compliant via `etcetera` crate)
 
