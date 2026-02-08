@@ -27,14 +27,14 @@
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Desktop Framework | [Tauri 2](https://tauri.app) |
-| Frontend | [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) |
-| Styling | [TailwindCSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) |
-| Backend | [Rust](https://www.rust-lang.org) |
-| Database | [SQLite](https://sqlite.org) via [Diesel ORM](https://diesel.rs) |
-| Package Manager | [Bun](https://bun.sh) |
+| Layer             | Technology                                                                   |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Desktop Framework | [Tauri 2](https://tauri.app)                                                 |
+| Frontend          | [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) |
+| Styling           | [TailwindCSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)  |
+| Backend           | [Rust](https://www.rust-lang.org)                                            |
+| Database          | [SQLite](https://sqlite.org) via [Diesel ORM](https://diesel.rs)             |
+| Package Manager   | [Bun](https://bun.sh)                                                        |
 
 ## Installation
 
@@ -74,9 +74,9 @@ bun run tauri build
 
 Click the sync button to export enabled snippets to shell-specific files:
 
-| Shell | Generated File Location |
-|-------|------------------------|
-| Linux | `~/.config/shell-snippets-manager/generated/<shell>.sh` |
+| Shell | Generated File Location                                                              |
+| ----- | ------------------------------------------------------------------------------------ |
+| Linux | `~/.config/shell-snippets-manager/generated/<shell>.sh`                              |
 | macOS | `~/Library/Application Support/com.akrc.shell-snippets-manager/generated/<shell>.sh` |
 
 Then source the generated file in your shell config:

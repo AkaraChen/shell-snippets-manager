@@ -27,14 +27,14 @@
 
 ## 技术栈
 
-| 层级 | 技术 |
-|------|------|
-| 桌面框架 | [Tauri 2](https://tauri.app) |
-| 前端 | [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) |
-| 样式 | [TailwindCSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) |
-| 后端 | [Rust](https://www.rust-lang.org) |
-| 数据库 | [SQLite](https://sqlite.org) via [Diesel ORM](https://diesel.rs) |
-| 包管理器 | [Bun](https://bun.sh) |
+| 层级     | 技术                                                                         |
+| -------- | ---------------------------------------------------------------------------- |
+| 桌面框架 | [Tauri 2](https://tauri.app)                                                 |
+| 前端     | [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org) |
+| 样式     | [TailwindCSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)  |
+| 后端     | [Rust](https://www.rust-lang.org)                                            |
+| 数据库   | [SQLite](https://sqlite.org) via [Diesel ORM](https://diesel.rs)             |
+| 包管理器 | [Bun](https://bun.sh)                                                        |
 
 ## 安装
 
@@ -74,9 +74,9 @@ bun run tauri build
 
 点击同步按钮，将启用的片段导出到 Shell 配置文件：
 
-| Shell | 生成文件位置 |
-|-------|-------------|
-| Linux | `~/.config/shell-snippets-manager/generated/<shell>.sh` |
+| Shell | 生成文件位置                                                                         |
+| ----- | ------------------------------------------------------------------------------------ |
+| Linux | `~/.config/shell-snippets-manager/generated/<shell>.sh`                              |
 | macOS | `~/Library/Application Support/com.akrc.shell-snippets-manager/generated/<shell>.sh` |
 
 然后在 Shell 配置文件中引入生成的文件：

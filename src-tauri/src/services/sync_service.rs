@@ -8,20 +8,20 @@ use crate::models::{ShellType, Snippet};
 
 /// Generate the output filename for a shell type
 pub fn get_output_filename(shell: &ShellType) -> String {
-    format!(
-        "snippets-manager-{}.{}",
-        shell.as_str(),
-        shell.file_extension()
-    )
+	format!(
+		"snippets-manager-{}.{}",
+		shell.as_str(),
+		shell.file_extension()
+	)
 }
 
 /// Generate file header comment
 fn generate_header(shell: &ShellType, snippet_count: usize) -> String {
-    let timestamp = Utc::now().format("%Y-%m-%d %H:%M:%S UTC");
-    let comment_char = "#";
+	let timestamp = Utc::now().format("%Y-%m-%d %H:%M:%S UTC");
+	let comment_char = "#";
 
-    format!(
-        r#"{comment_char} ============================================================
+	format!(
+		r#"{comment_char} ============================================================
 {comment_char} Shell Snippets Manager - Auto-generated file
 {comment_char} Shell: {shell}
 {comment_char} Generated: {timestamp}
@@ -32,86 +32,86 @@ fn generate_header(shell: &ShellType, snippet_count: usize) -> String {
 {comment_char} ============================================================
 
 "#,
-        comment_char = comment_char,
-        shell = shell.as_str(),
-        timestamp = timestamp,
-        snippet_count = snippet_count,
-    )
+		comment_char = comment_char,
+		shell = shell.as_str(),
+		timestamp = timestamp,
+		snippet_count = snippet_count,
+	)
 }
 
 /// Generate snippet block with header comment
 fn generate_snippet_block(snippet: &Snippet, tags: &[String]) -> String {
-    let comment_char = "#";
+	let comment_char = "#";
 
-    let description_line = snippet
-        .description
-        .as_ref()
-        .map(|d| format!("\n{} Description: {}", comment_char, d))
-        .unwrap_or_default();
+	let description_line = snippet
+		.description
+		.as_ref()
+		.map(|d| format!("\n{} Description: {}", comment_char, d))
+		.unwrap_or_default();
 
-    let tags_line = if tags.is_empty() {
-        String::new()
-    } else {
-        format!("\n{} Tags: {}", comment_char, tags.join(", "))
-    };
+	let tags_line = if tags.is_empty() {
+		String::new()
+	} else {
+		format!("\n{} Tags: {}", comment_char, tags.join(", "))
+	};
 
-    format!(
-        r#"
+	format!(
+		r#"
 {comment_char} --- [{id}] {name} ---{description}{tags}
 {content}
 "#,
-        comment_char = comment_char,
-        id = snippet.id,
-        name = snippet.name,
-        description = description_line,
-        tags = tags_line,
-        content = snippet.content,
-    )
+		comment_char = comment_char,
+		id = snippet.id,
+		name = snippet.name,
+		description = description_line,
+		tags = tags_line,
+		content = snippet.content,
+	)
 }
 
 /// Sync snippets to a shell-specific file
 pub fn sync_to_file(
-    snippets: Vec<Snippet>,
-    shell: ShellType,
-    output_dir: PathBuf,
+	snippets: Vec<Snippet>,
+	shell: ShellType,
+	output_dir: PathBuf,
 ) -> AppResult<PathBuf> {
-    // Ensure output directory exists
-    fs::create_dir_all(&output_dir)?;
+	// Ensure output directory exists
+	fs::create_dir_all(&output_dir)?;
 
-    let filename = get_output_filename(&shell);
-    let output_path = output_dir.join(&filename);
+	let filename = get_output_filename(&shell);
+	let output_path = output_dir.join(&filename);
 
-    // Generate file content
-    let mut content = generate_header(&shell, snippets.len());
+	// Generate file content
+	let mut content = generate_header(&shell, snippets.len());
 
-    for snippet in &snippets {
-        content.push_str(&generate_snippet_block(snippet, &[]));
-    }
+	for snippet in &snippets {
+		content.push_str(&generate_snippet_block(snippet, &[]));
+	}
 
-    // Add footer
-    content.push_str(&format!(
-        "\n# --- End of Shell Snippets Manager ({} snippets) ---\n",
-        snippets.len()
-    ));
+	// Add footer
+	content.push_str(&format!(
+		"\n# --- End of Shell Snippets Manager ({} snippets) ---\n",
+		snippets.len()
+	));
 
-    // Write atomically (write to temp, then rename)
-    let temp_path = output_path.with_extension("tmp");
-    {
-        let mut file = fs::File::create(&temp_path)?;
-        file.write_all(content.as_bytes())?;
-        file.sync_all()?;
-    }
-    fs::rename(&temp_path, &output_path)?;
+	// Write atomically (write to temp, then rename)
+	let temp_path = output_path.with_extension("tmp");
+	{
+		let mut file = fs::File::create(&temp_path)?;
+		file.write_all(content.as_bytes())?;
+		file.sync_all()?;
+	}
+	fs::rename(&temp_path, &output_path)?;
 
-    Ok(output_path)
+	Ok(output_path)
 }
 
 /// Get the source line to add to shell rc file
 pub fn get_source_line(shell: &ShellType, output_dir: &Path) -> String {
-    let filename = get_output_filename(shell);
-    let file_path = output_dir.join(&filename);
+	let filename = get_output_filename(shell);
+	let file_path = output_dir.join(&filename);
 
-    match shell {
+	match shell {
         ShellType::Fish => format!(
             "set SNIPPETS_FILE \"{}\"\ntest -f \"$SNIPPETS_FILE\"; and \\\n    source \"$SNIPPETS_FILE\"",
             file_path.display()
@@ -125,182 +125,190 @@ pub fn get_source_line(shell: &ShellType, output_dir: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use std::fs;
-    use tempfile::tempdir;
+	use super::*;
+	use std::fs;
+	use tempfile::tempdir;
 
-    fn create_test_snippet(id: i32, name: &str, content: &str) -> Snippet {
-        Snippet {
-            id,
-            name: name.to_string(),
-            content: content.to_string(),
-            shell_type: "bash".to_string(),
-            description: Some(format!("Description for {}", name)),
-            enabled: 1,
-            sort_order: id,
-            created_at: "2024-01-01 00:00:00".to_string(),
-            updated_at: "2024-01-01 00:00:00".to_string(),
-        }
-    }
+	fn create_test_snippet(id: i32, name: &str, content: &str) -> Snippet {
+		Snippet {
+			id,
+			name: name.to_string(),
+			content: content.to_string(),
+			shell_type: "bash".to_string(),
+			description: Some(format!("Description for {}", name)),
+			enabled: 1,
+			sort_order: id,
+			created_at: "2024-01-01 00:00:00".to_string(),
+			updated_at: "2024-01-01 00:00:00".to_string(),
+		}
+	}
 
-    #[test]
-    fn test_get_output_filename_bash() {
-        let filename = get_output_filename(&ShellType::Bash);
-        assert_eq!(filename, "snippets-manager-bash.sh");
-    }
+	#[test]
+	fn test_get_output_filename_bash() {
+		let filename = get_output_filename(&ShellType::Bash);
+		assert_eq!(filename, "snippets-manager-bash.sh");
+	}
 
-    #[test]
-    fn test_get_output_filename_zsh() {
-        let filename = get_output_filename(&ShellType::Zsh);
-        assert_eq!(filename, "snippets-manager-zsh.sh");
-    }
+	#[test]
+	fn test_get_output_filename_zsh() {
+		let filename = get_output_filename(&ShellType::Zsh);
+		assert_eq!(filename, "snippets-manager-zsh.sh");
+	}
 
-    #[test]
-    fn test_get_output_filename_fish() {
-        let filename = get_output_filename(&ShellType::Fish);
-        assert_eq!(filename, "snippets-manager-fish.fish");
-    }
+	#[test]
+	fn test_get_output_filename_fish() {
+		let filename = get_output_filename(&ShellType::Fish);
+		assert_eq!(filename, "snippets-manager-fish.fish");
+	}
 
-    #[test]
-    fn test_get_source_line_bash() {
-        let dir = PathBuf::from("/home/user/.config/shell-snippets-manager");
-        let source_line = get_source_line(&ShellType::Bash, &dir);
+	#[test]
+	fn test_get_source_line_bash() {
+		let dir = PathBuf::from("/home/user/.config/shell-snippets-manager");
+		let source_line = get_source_line(&ShellType::Bash, &dir);
 
-        assert!(source_line.contains("SNIPPETS_FILE="));
-        assert!(source_line.contains("[ -f \"$SNIPPETS_FILE\" ]"));
-        assert!(source_line.contains("source \"$SNIPPETS_FILE\""));
-        assert!(source_line.contains("snippets-manager-bash.sh"));
-    }
+		assert!(source_line.contains("SNIPPETS_FILE="));
+		assert!(source_line.contains("[ -f \"$SNIPPETS_FILE\" ]"));
+		assert!(source_line.contains("source \"$SNIPPETS_FILE\""));
+		assert!(source_line.contains("snippets-manager-bash.sh"));
+	}
 
-    #[test]
-    fn test_get_source_line_fish() {
-        let dir = PathBuf::from("/home/user/.config/shell-snippets-manager");
-        let source_line = get_source_line(&ShellType::Fish, &dir);
+	#[test]
+	fn test_get_source_line_fish() {
+		let dir = PathBuf::from("/home/user/.config/shell-snippets-manager");
+		let source_line = get_source_line(&ShellType::Fish, &dir);
 
-        assert!(source_line.contains("set SNIPPETS_FILE"));
-        assert!(source_line.contains("test -f \"$SNIPPETS_FILE\""));
-        assert!(source_line.contains("source \"$SNIPPETS_FILE\""));
-        assert!(source_line.contains("snippets-manager-fish.fish"));
-    }
+		assert!(source_line.contains("set SNIPPETS_FILE"));
+		assert!(source_line.contains("test -f \"$SNIPPETS_FILE\""));
+		assert!(source_line.contains("source \"$SNIPPETS_FILE\""));
+		assert!(source_line.contains("snippets-manager-fish.fish"));
+	}
 
-    #[test]
-    fn test_sync_to_file_creates_file() {
-        let temp_dir = tempdir().expect("Failed to create temp dir");
-        let output_dir = temp_dir.path().to_path_buf();
+	#[test]
+	fn test_sync_to_file_creates_file() {
+		let temp_dir = tempdir().expect("Failed to create temp dir");
+		let output_dir = temp_dir.path().to_path_buf();
 
-        let snippet = create_test_snippet(1, "test_alias", "alias test='echo test'");
-        let snippets = vec![snippet];
+		let snippet =
+			create_test_snippet(1, "test_alias", "alias test='echo test'");
+		let snippets = vec![snippet];
 
-        let result = sync_to_file(snippets, ShellType::Bash, output_dir.clone());
-        assert!(result.is_ok());
+		let result =
+			sync_to_file(snippets, ShellType::Bash, output_dir.clone());
+		assert!(result.is_ok());
 
-        let output_path = result.unwrap();
-        assert!(output_path.exists());
+		let output_path = result.unwrap();
+		assert!(output_path.exists());
 
-        // Read and verify content
-        let content = fs::read_to_string(&output_path).expect("Failed to read file");
-        assert!(content.contains("Shell Snippets Manager"));
-        assert!(content.contains("Shell: bash"));
-        assert!(content.contains("Snippets: 1"));
-        assert!(content.contains("test_alias"));
-        assert!(content.contains("alias test='echo test'"));
-    }
+		// Read and verify content
+		let content =
+			fs::read_to_string(&output_path).expect("Failed to read file");
+		assert!(content.contains("Shell Snippets Manager"));
+		assert!(content.contains("Shell: bash"));
+		assert!(content.contains("Snippets: 1"));
+		assert!(content.contains("test_alias"));
+		assert!(content.contains("alias test='echo test'"));
+	}
 
-    #[test]
-    fn test_sync_to_file_empty_snippets() {
-        let temp_dir = tempdir().expect("Failed to create temp dir");
-        let output_dir = temp_dir.path().to_path_buf();
+	#[test]
+	fn test_sync_to_file_empty_snippets() {
+		let temp_dir = tempdir().expect("Failed to create temp dir");
+		let output_dir = temp_dir.path().to_path_buf();
 
-        let snippets: Vec<Snippet> = vec![];
+		let snippets: Vec<Snippet> = vec![];
 
-        let result = sync_to_file(snippets, ShellType::Zsh, output_dir);
-        assert!(result.is_ok());
+		let result = sync_to_file(snippets, ShellType::Zsh, output_dir);
+		assert!(result.is_ok());
 
-        let output_path = result.unwrap();
-        let content = fs::read_to_string(&output_path).expect("Failed to read file");
+		let output_path = result.unwrap();
+		let content =
+			fs::read_to_string(&output_path).expect("Failed to read file");
 
-        assert!(content.contains("Snippets: 0"));
-        assert!(content.contains("End of Shell Snippets Manager (0 snippets)"));
-    }
+		assert!(content.contains("Snippets: 0"));
+		assert!(content.contains("End of Shell Snippets Manager (0 snippets)"));
+	}
 
-    #[test]
-    fn test_sync_to_file_multiple_snippets() {
-        let temp_dir = tempdir().expect("Failed to create temp dir");
-        let output_dir = temp_dir.path().to_path_buf();
+	#[test]
+	fn test_sync_to_file_multiple_snippets() {
+		let temp_dir = tempdir().expect("Failed to create temp dir");
+		let output_dir = temp_dir.path().to_path_buf();
 
-        let snippets = vec![
-            create_test_snippet(1, "snippet_one", "echo one"),
-            create_test_snippet(2, "snippet_two", "echo two"),
-            create_test_snippet(3, "snippet_three", "echo three"),
-        ];
+		let snippets = vec![
+			create_test_snippet(1, "snippet_one", "echo one"),
+			create_test_snippet(2, "snippet_two", "echo two"),
+			create_test_snippet(3, "snippet_three", "echo three"),
+		];
 
-        let result = sync_to_file(snippets, ShellType::Bash, output_dir);
-        assert!(result.is_ok());
+		let result = sync_to_file(snippets, ShellType::Bash, output_dir);
+		assert!(result.is_ok());
 
-        let output_path = result.unwrap();
-        let content = fs::read_to_string(&output_path).expect("Failed to read file");
+		let output_path = result.unwrap();
+		let content =
+			fs::read_to_string(&output_path).expect("Failed to read file");
 
-        assert!(content.contains("Snippets: 3"));
-        assert!(content.contains("snippet_one"));
-        assert!(content.contains("snippet_two"));
-        assert!(content.contains("snippet_three"));
-        assert!(content.contains("End of Shell Snippets Manager (3 snippets)"));
-    }
+		assert!(content.contains("Snippets: 3"));
+		assert!(content.contains("snippet_one"));
+		assert!(content.contains("snippet_two"));
+		assert!(content.contains("snippet_three"));
+		assert!(content.contains("End of Shell Snippets Manager (3 snippets)"));
+	}
 
-    #[test]
-    fn test_sync_to_file_creates_directory() {
-        let temp_dir = tempdir().expect("Failed to create temp dir");
-        let output_dir = temp_dir.path().join("nested").join("dir");
+	#[test]
+	fn test_sync_to_file_creates_directory() {
+		let temp_dir = tempdir().expect("Failed to create temp dir");
+		let output_dir = temp_dir.path().join("nested").join("dir");
 
-        let snippets = vec![create_test_snippet(1, "test", "echo test")];
+		let snippets = vec![create_test_snippet(1, "test", "echo test")];
 
-        let result = sync_to_file(snippets, ShellType::Bash, output_dir.clone());
-        assert!(result.is_ok());
-        assert!(output_dir.exists());
-    }
+		let result =
+			sync_to_file(snippets, ShellType::Bash, output_dir.clone());
+		assert!(result.is_ok());
+		assert!(output_dir.exists());
+	}
 
-    #[test]
-    fn test_sync_to_file_snippet_without_tags() {
-        let temp_dir = tempdir().expect("Failed to create temp dir");
-        let output_dir = temp_dir.path().to_path_buf();
+	#[test]
+	fn test_sync_to_file_snippet_without_tags() {
+		let temp_dir = tempdir().expect("Failed to create temp dir");
+		let output_dir = temp_dir.path().to_path_buf();
 
-        let snippets = vec![create_test_snippet(1, "no_tags", "echo no tags")];
+		let snippets = vec![create_test_snippet(1, "no_tags", "echo no tags")];
 
-        let result = sync_to_file(snippets, ShellType::Bash, output_dir);
-        assert!(result.is_ok());
+		let result = sync_to_file(snippets, ShellType::Bash, output_dir);
+		assert!(result.is_ok());
 
-        let output_path = result.unwrap();
-        let content = fs::read_to_string(&output_path).expect("Failed to read file");
+		let output_path = result.unwrap();
+		let content =
+			fs::read_to_string(&output_path).expect("Failed to read file");
 
-        // Should not have a Tags: line
-        assert!(!content.contains("Tags:"));
-    }
+		// Should not have a Tags: line
+		assert!(!content.contains("Tags:"));
+	}
 
-    #[test]
-    fn test_sync_to_file_snippet_with_description() {
-        let temp_dir = tempdir().expect("Failed to create temp dir");
-        let output_dir = temp_dir.path().to_path_buf();
+	#[test]
+	fn test_sync_to_file_snippet_with_description() {
+		let temp_dir = tempdir().expect("Failed to create temp dir");
+		let output_dir = temp_dir.path().to_path_buf();
 
-        let snippet = Snippet {
-            id: 1,
-            name: "described".to_string(),
-            content: "echo described".to_string(),
-            shell_type: "bash".to_string(),
-            description: Some("This is a detailed description".to_string()),
-            enabled: 1,
-            sort_order: 1,
-            created_at: "2024-01-01 00:00:00".to_string(),
-            updated_at: "2024-01-01 00:00:00".to_string(),
-        };
+		let snippet = Snippet {
+			id: 1,
+			name: "described".to_string(),
+			content: "echo described".to_string(),
+			shell_type: "bash".to_string(),
+			description: Some("This is a detailed description".to_string()),
+			enabled: 1,
+			sort_order: 1,
+			created_at: "2024-01-01 00:00:00".to_string(),
+			updated_at: "2024-01-01 00:00:00".to_string(),
+		};
 
-        let snippets = vec![snippet];
+		let snippets = vec![snippet];
 
-        let result = sync_to_file(snippets, ShellType::Bash, output_dir);
-        assert!(result.is_ok());
+		let result = sync_to_file(snippets, ShellType::Bash, output_dir);
+		assert!(result.is_ok());
 
-        let output_path = result.unwrap();
-        let content = fs::read_to_string(&output_path).expect("Failed to read file");
+		let output_path = result.unwrap();
+		let content =
+			fs::read_to_string(&output_path).expect("Failed to read file");
 
-        assert!(content.contains("Description: This is a detailed description"));
-    }
+		assert!(content.contains("Description: This is a detailed description"));
+	}
 }

@@ -1,51 +1,63 @@
-import { invoke } from '@tauri-apps/api/core';
-import type { Snippet, NewSnippet, UpdateSnippet, ShellType, ShellInfo, AliasResponse, NewAlias } from '../types/snippet';
+import { invoke } from "@tauri-apps/api/core";
+import type {
+	AliasResponse,
+	NewAlias,
+	NewSnippet,
+	ShellInfo,
+	ShellType,
+	Snippet,
+	UpdateSnippet,
+} from "../types/snippet";
 
 export const snippetApi = {
-  // Snippet CRUD
-  getAll: () => invoke<Snippet[]>('get_snippets'),
+	// Snippet CRUD
+	getAll: () => invoke<Snippet[]>("get_snippets"),
 
-  getById: (id: number) => invoke<Snippet>('get_snippet', { id }),
+	getById: (id: number) => invoke<Snippet>("get_snippet", { id }),
 
-  create: (snippet: NewSnippet) => invoke<Snippet>('create_snippet', { snippet }),
+	create: (snippet: NewSnippet) =>
+		invoke<Snippet>("create_snippet", { snippet }),
 
-  update: (id: number, updates: UpdateSnippet) =>
-    invoke<Snippet>('update_snippet', { id, updates }),
+	update: (id: number, updates: UpdateSnippet) =>
+		invoke<Snippet>("update_snippet", { id, updates }),
 
-  delete: (id: number) => invoke<void>('delete_snippet', { id }),
+	delete: (id: number) => invoke<void>("delete_snippet", { id }),
 
-  toggle: (id: number) => invoke<Snippet>('toggle_snippet', { id }),
+	toggle: (id: number) => invoke<Snippet>("toggle_snippet", { id }),
 
-  reorder: (order: [number, number][]) =>
-    invoke<void>('reorder_snippets', { order }),
+	reorder: (order: [number, number][]) =>
+		invoke<void>("reorder_snippets", { order }),
 };
 
 export const syncApi = {
-  // Sync operations
-  syncToFile: (shellType: ShellType) =>
-    invoke<string>('sync_to_file', { shellType }),
+	// Sync operations
+	syncToFile: (shellType: ShellType) =>
+		invoke<string>("sync_to_file", { shellType }),
 
-  syncAllShells: () => invoke<string[]>('sync_all_shells'),
+	syncAllShells: () => invoke<string[]>("sync_all_shells"),
 
-  getSourceLine: (shellType: ShellType) =>
-    invoke<string>('get_source_line', { shellType }),
+	getSourceLine: (shellType: ShellType) =>
+		invoke<string>("get_source_line", { shellType }),
 
-  getOutputDirectory: () => invoke<string>('get_output_directory'),
+	getOutputDirectory: () => invoke<string>("get_output_directory"),
 
-  openOutputDirectory: () => invoke<void>('open_output_directory'),
+	openOutputDirectory: () => invoke<void>("open_output_directory"),
 
-  openFileInEditor: (filePath: string) =>
-    invoke<void>('open_file_in_editor', { filePath }),
+	openFileInEditor: (filePath: string) =>
+		invoke<void>("open_file_in_editor", { filePath }),
 };
 
 export const aliasApi = {
-  getAll: () => invoke<AliasResponse[]>('get_aliases'),
-  create: (alias: NewAlias) => {
-    const { shell_types, ...aliasData } = alias;
-    return invoke<AliasResponse>('create_alias', { alias: aliasData, shellTypes: shell_types });
-  },
+	getAll: () => invoke<AliasResponse[]>("get_aliases"),
+	create: (alias: NewAlias) => {
+		const { shell_types, ...aliasData } = alias;
+		return invoke<AliasResponse>("create_alias", {
+			alias: aliasData,
+			shellTypes: shell_types,
+		});
+	},
 };
 
 export const shellApi = {
-  getShellInfo: () => invoke<ShellInfo>('get_shell_info'),
+	getShellInfo: () => invoke<ShellInfo>("get_shell_info"),
 };
