@@ -64,7 +64,7 @@ export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, d
             </span>
             {aliasName && (
               <Badge variant="outline" className="text-xs font-(--font-mono)">
-                {aliasName}
+                Alias
               </Badge>
             )}
             {!snippet.enabled && (
