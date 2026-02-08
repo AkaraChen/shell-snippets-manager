@@ -23,7 +23,6 @@ export function Aliases() {
 		<div className="min-h-screen bg-background text-foreground">
 			<Header
 				onCreateClick={() => setCreateDialogOpen(true)}
-				createLabel="Create Alias"
 				snippetCount={snippets.length}
 				aliasCount={aliases.length}
 			/>

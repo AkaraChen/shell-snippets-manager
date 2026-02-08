@@ -35,7 +35,7 @@ interface HeaderProps {
 
 export function Header({
 	onCreateClick,
-	createLabel = "Create Snippet",
+	createLabel = "Create",
 	selectedShell,
 	availableShells,
 	onShellChange,

@@ -6,11 +6,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCreateAlias } from "@/hooks/useCreateAlias";
 import { useCreateSnippet } from "@/hooks/useCreateSnippet";
-import type { NewAlias, NewSnippet, UpdateAlias, UpdateSnippet } from "@/types/snippet";
-import { AliasForm } from "./AliasForm";
+import type { NewSnippet, UpdateSnippet } from "@/types/snippet";
 import { SnippetForm } from "./SnippetForm";
 
 interface CreateSnippetDialogProps {
@@ -27,18 +24,9 @@ function CreateSnippetDialogContent({
 }: CreateSnippetDialogContentProps) {
 	const { mutate: createSnippet, isPending: isSnippetPending } =
 		useCreateSnippet();
-	const { mutate: createAlias, isPending: isAliasPending } = useCreateAlias();
 
 	const handleSnippetSubmit = (data: NewSnippet | UpdateSnippet) => {
 		createSnippet(data as NewSnippet, {
-			onSuccess: () => {
-				onOpenChange(false);
-			},
-		});
-	};
-
-	const handleAliasSubmit = (data: NewAlias | UpdateAlias) => {
-		createAlias(data as NewAlias, {
 			onSuccess: () => {
 				onOpenChange(false);
 			},
@@ -54,33 +42,12 @@ function CreateSnippetDialogContent({
 				</DialogTitle>
 			</DialogHeader>
 
-			<Tabs defaultValue="snippet">
-				<TabsList className="w-full">
-					<TabsTrigger value="snippet" className="flex-1">
-						Snippet
-					</TabsTrigger>
-					<TabsTrigger value="alias" className="flex-1">
-						Alias
-					</TabsTrigger>
-				</TabsList>
-
-				<TabsContent value="snippet">
-					<SnippetForm
-						mode="create"
-						onSubmit={handleSnippetSubmit}
-						onCancel={() => onOpenChange(false)}
-						isPending={isSnippetPending}
-					/>
-				</TabsContent>
-
-				<TabsContent value="alias">
-					<AliasForm
-						onSubmit={handleAliasSubmit}
-						onCancel={() => onOpenChange(false)}
-						isPending={isAliasPending}
-					/>
-				</TabsContent>
-			</Tabs>
+			<SnippetForm
+				mode="create"
+				onSubmit={handleSnippetSubmit}
+				onCancel={() => onOpenChange(false)}
+				isPending={isSnippetPending}
+			/>
 		</>
 	);
 }
