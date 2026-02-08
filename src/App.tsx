@@ -8,6 +8,7 @@ import { CreateSnippetDialog } from '@/components/CreateSnippetDialog';
 import { EditSnippetDialog } from '@/components/EditSnippetDialog';
 import { useSnippets } from '@/hooks/useSnippets';
 import { useShellInfo } from '@/hooks/useShellInfo';
+import { useAliases } from '@/hooks/useAliases';
 import type { Snippet } from '@/types/snippet';
 
 function AppContent() {
@@ -15,6 +16,7 @@ function AppContent() {
   const [editingSnippet, setEditingSnippet] = useState<Snippet | null>(null);
   const { snippets, loading, toggleSnippet, deleteSnippet, reorderSnippets } = useSnippets();
   const { available_shells, default_shell } = useShellInfo();
+  const { aliasMap } = useAliases();
   const [selectedShell, setSelectedShell] = useState(default_shell);
 
   const handleEdit = (snippet: Snippet) => {
@@ -53,6 +55,7 @@ function AppContent() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onReorder={reorderSnippets}
+            aliasMap={aliasMap}
           />
         </main>
 

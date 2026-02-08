@@ -21,6 +21,7 @@ interface DraggableSnippetItemProps {
   onDelete: (id: number) => void;
   moveSnippet: (dragIndex: number, hoverIndex: number) => void;
   onDragEnd: (fromIndex: number, toIndex: number) => void;
+  aliasName?: string;
 }
 
 export function DraggableSnippetItem({
@@ -31,6 +32,7 @@ export function DraggableSnippetItem({
   onDelete,
   moveSnippet,
   onDragEnd,
+  aliasName,
 }: DraggableSnippetItemProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -128,6 +130,7 @@ export function DraggableSnippetItem({
         onDelete={onDelete}
         isDragging={isDragging}
         dragRef={drag}
+        aliasName={aliasName}
       />
     </div>
   );

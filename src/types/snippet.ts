@@ -34,3 +34,19 @@ export interface UpdateSnippet {
   enabled?: number;
   sort_order?: number;
 }
+
+export interface AliasResponse {
+  id: number;
+  name: string;
+  command: string;
+  description: string | null;
+  snippets: Snippet[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NewAlias {
+  name: string;
+  command: string;
+  description?: string | null;
+}

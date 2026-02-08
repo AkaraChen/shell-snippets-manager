@@ -11,6 +11,7 @@ interface SnippetListProps {
   onEdit: (snippet: Snippet) => void;
   onDelete: (id: number) => void;
   onReorder: (fromIndex: number, toIndex: number) => void;
+  aliasMap?: Map<number, string>;
 }
 
 function EmptyState() {
@@ -19,7 +20,7 @@ function EmptyState() {
       <div className="w-16 h-16 rounded-full bg-code-bg border border-code-border flex items-center justify-center mb-4">
         <FileCode className="w-8 h-8 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-[var(--font-mono)] text-foreground mb-2">
+      <h3 className="text-lg font-(--font-mono) text-foreground mb-2">
         No snippets yet
       </h3>
       <p className="text-sm text-muted-foreground text-center max-w-sm">
@@ -47,7 +48,7 @@ function LoadingSkeleton() {
   );
 }
 
-export function SnippetList({ snippets, loading, onToggle, onEdit, onDelete, onReorder }: SnippetListProps) {
+export function SnippetList({ snippets, loading, onToggle, onEdit, onDelete, onReorder, aliasMap }: SnippetListProps) {
   // Local state for immediate visual feedback during drag
   const [localSnippets, setLocalSnippets] = useState<Snippet[]>(snippets);
 
@@ -88,7 +89,7 @@ export function SnippetList({ snippets, loading, onToggle, onEdit, onDelete, onR
     <div className="space-y-1">
       <div className="flex items-center gap-2 mb-4 text-muted-foreground">
         <Terminal className="w-4 h-4" />
-        <span className="text-sm font-[var(--font-mono)]">
+        <span className="text-sm font-(--font-mono)">
           {localSnippets.length} snippet{localSnippets.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -104,6 +105,7 @@ export function SnippetList({ snippets, loading, onToggle, onEdit, onDelete, onR
             onDelete={onDelete}
             moveSnippet={moveSnippet}
             onDragEnd={handleDragEnd}
+            aliasName={aliasMap?.get(snippet.id)}
           />
         ))}
       </Accordion>

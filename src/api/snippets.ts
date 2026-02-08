@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { Snippet, NewSnippet, UpdateSnippet, ShellType, ShellInfo } from '../types/snippet';
+import type { Snippet, NewSnippet, UpdateSnippet, ShellType, ShellInfo, AliasResponse, NewAlias } from '../types/snippet';
 
 export const snippetApi = {
   // Snippet CRUD
@@ -36,6 +36,11 @@ export const syncApi = {
 
   openFileInEditor: (filePath: string) =>
     invoke<void>('open_file_in_editor', { filePath }),
+};
+
+export const aliasApi = {
+  getAll: () => invoke<AliasResponse[]>('get_aliases'),
+  create: (alias: NewAlias) => invoke<AliasResponse>('create_alias', { alias }),
 };
 
 export const shellApi = {

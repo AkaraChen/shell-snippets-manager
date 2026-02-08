@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { SnippetCodeBlock } from './SnippetCodeBlock';
 import { DragHandle } from './DragHandle';
 import type { Snippet } from '@/types/snippet';
@@ -25,9 +26,10 @@ interface SnippetItemProps {
   onDelete: (id: number) => void;
   isDragging?: boolean;
   dragRef?: (element: HTMLElement | null) => void;
+  aliasName?: string;
 }
 
-export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, dragRef }: SnippetItemProps) {
+export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, dragRef, aliasName }: SnippetItemProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleDelete = () => {
@@ -54,12 +56,17 @@ export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, d
             </div>
             <span
               className={cn(
-                'font-[var(--font-mono)] text-sm truncate',
+                'font-(--font-mono) text-sm truncate',
                 !snippet.enabled && 'line-through text-muted-foreground'
               )}
             >
               {snippet.name}
             </span>
+            {aliasName && (
+              <Badge variant="outline" className="text-xs font-(--font-mono)">
+                {aliasName}
+              </Badge>
+            )}
             {!snippet.enabled && (
               <span className="text-xs text-muted-foreground">(disabled)</span>
             )}
@@ -118,11 +125,11 @@ export function SnippetItem({ snippet, onToggle, onEdit, onDelete, isDragging, d
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent className="border-code-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-[var(--font-mono)]">
+            <AlertDialogTitle className="font-(--font-mono)">
               Delete snippet?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete <span className="font-[var(--font-mono)] text-foreground">"{snippet.name}"</span>. This action cannot be undone.
+              This will permanently delete <span className="font-(--font-mono) text-foreground">"{snippet.name}"</span>. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
