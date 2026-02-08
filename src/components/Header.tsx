@@ -1,4 +1,4 @@
-import { Terminal, Plus } from "lucide-react";
+import { Plus, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
