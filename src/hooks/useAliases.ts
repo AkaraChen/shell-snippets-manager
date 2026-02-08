@@ -6,7 +6,7 @@ import type { AliasResponse } from "@/types/snippet";
 const ALIASES_KEY = "aliases";
 
 export function useAliases() {
-	const { data, error, isLoading } = useSWR<AliasResponse[]>(
+	const { data, error, isLoading, mutate } = useSWR<AliasResponse[]>(
 		ALIASES_KEY,
 		() => aliasApi.getAll(),
 	);
@@ -23,10 +23,20 @@ export function useAliases() {
 		return map;
 	}, [data]);
 
+	const deleteAlias = async (id: number) => {
+		await aliasApi.delete(id);
+		await mutate(
+			(current) => current?.filter((a) => a.id !== id),
+			false,
+		);
+	};
+
 	return {
 		aliases: data ?? [],
 		aliasMap,
 		loading: isLoading,
 		error,
+		deleteAlias,
+		mutate,
 	};
 }

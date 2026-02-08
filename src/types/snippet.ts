@@ -51,3 +51,9 @@ export interface NewAlias {
 	description?: string | null;
 	shell_types: string[];
 }
+
+export interface UpdateAlias {
+	name?: string;
+	command?: string;
+	description?: string | null;
+}

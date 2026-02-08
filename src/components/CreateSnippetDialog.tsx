@@ -9,7 +9,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCreateAlias } from "@/hooks/useCreateAlias";
 import { useCreateSnippet } from "@/hooks/useCreateSnippet";
-import type { NewAlias, NewSnippet, UpdateSnippet } from "@/types/snippet";
+import type { NewAlias, NewSnippet, UpdateAlias, UpdateSnippet } from "@/types/snippet";
 import { AliasForm } from "./AliasForm";
 import { SnippetForm } from "./SnippetForm";
 
@@ -37,8 +37,8 @@ function CreateSnippetDialogContent({
 		});
 	};
 
-	const handleAliasSubmit = (data: NewAlias) => {
-		createAlias(data, {
+	const handleAliasSubmit = (data: NewAlias | UpdateAlias) => {
+		createAlias(data as NewAlias, {
 			onSuccess: () => {
 				onOpenChange(false);
 			},

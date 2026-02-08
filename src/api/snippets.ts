@@ -6,6 +6,7 @@ import type {
 	ShellInfo,
 	ShellType,
 	Snippet,
+	UpdateAlias,
 	UpdateSnippet,
 } from "../types/snippet";
 
@@ -56,6 +57,9 @@ export const aliasApi = {
 			shellTypes: shell_types,
 		});
 	},
+	update: (id: number, updates: UpdateAlias) =>
+		invoke<AliasResponse>("update_alias", { id, updates }),
+	delete: (id: number) => invoke<void>("delete_alias", { id }),
 };
 
 export const shellApi = {

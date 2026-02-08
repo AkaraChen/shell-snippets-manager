@@ -1,4 +1,5 @@
 import { Plus, Terminal } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
@@ -7,6 +8,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { HelpButton } from "./HelpButton";
 import { SyncButton } from "./SyncButton";
 
@@ -23,17 +25,22 @@ function capitalizeShellName(shell: string): string {
 
 interface HeaderProps {
 	onCreateClick: () => void;
-	selectedShell: string;
-	availableShells: string[];
-	onShellChange: (shell: string) => void;
+	createLabel?: string;
+	selectedShell?: string;
+	availableShells?: string[];
+	onShellChange?: (shell: string) => void;
 }
 
 export function Header({
 	onCreateClick,
+	createLabel = "Create Snippet",
 	selectedShell,
 	availableShells,
 	onShellChange,
 }: HeaderProps) {
+	const [location] = useLocation();
+	const showShellSelector = !!selectedShell && !!availableShells && !!onShellChange;
+
 	return (
 		<header className="sticky top-0 z-50 w-full border-b border-code-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 			<div className="container mx-auto flex h-14 items-center justify-between px-4 max-w-3xl">
@@ -43,27 +50,33 @@ export function Header({
 						<Terminal className="w-4 h-4 text-success" />
 					</div>
 					<h1 className="text-lg font-semibold font-[var(--font-mono)] tracking-tight flex items-center">
-						<Select
-							value={selectedShell}
-							onValueChange={onShellChange}
-						>
-							<SelectTrigger className="border-none shadow-none bg-transparent! hover:bg-success/10! px-2 h-auto w-auto text-lg font-semibold text-success focus:ring-0 focus-visible:ring-0 gap-1 mr-2 [&>svg]:text-success">
-								<SelectValue>
-									{capitalizeShellName(selectedShell)}
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								{availableShells.map((shell) => (
-									<SelectItem
-										key={shell}
-										value={shell}
-										className="font-[var(--font-mono)]"
-									>
-										{capitalizeShellName(shell)}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						{showShellSelector ? (
+							<Select
+								value={selectedShell}
+								onValueChange={onShellChange}
+							>
+								<SelectTrigger className="border-none shadow-none bg-transparent! hover:bg-success/10! px-2 h-auto w-auto text-lg font-semibold text-success focus:ring-0 focus-visible:ring-0 gap-1 mr-2 [&>svg]:text-success">
+									<SelectValue>
+										{capitalizeShellName(selectedShell)}
+									</SelectValue>
+								</SelectTrigger>
+								<SelectContent>
+									{availableShells.map((shell) => (
+										<SelectItem
+											key={shell}
+											value={shell}
+											className="font-[var(--font-mono)]"
+										>
+											{capitalizeShellName(shell)}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						) : (
+							<span className="text-success mr-2 px-2">
+								Shell
+							</span>
+						)}
 						<span className="text-foreground">
 							Snippets Manager
 						</span>
@@ -80,9 +93,37 @@ export function Header({
 						className="gap-2 bg-success hover:bg-success/90 text-black font-medium"
 					>
 						<Plus className="w-4 h-4" />
-						Create Snippet
+						{createLabel}
 					</Button>
 				</div>
+			</div>
+
+			{/* Navigation tabs */}
+			<div className="container mx-auto px-4 max-w-3xl">
+				<nav className="flex gap-4 -mb-px">
+					<Link
+						href="/"
+						className={cn(
+							"px-1 py-2 text-sm font-(--font-mono) border-b-2 transition-colors",
+							location === "/"
+								? "border-success text-success"
+								: "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
+						)}
+					>
+						Snippets
+					</Link>
+					<Link
+						href="/aliases"
+						className={cn(
+							"px-1 py-2 text-sm font-(--font-mono) border-b-2 transition-colors",
+							location === "/aliases"
+								? "border-success text-success"
+								: "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
+						)}
+					>
+						Aliases
+					</Link>
+				</nav>
 			</div>
 
 			{/* Subtle glow line */}

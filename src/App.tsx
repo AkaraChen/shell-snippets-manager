@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Route, Switch } from "wouter";
 import { Toaster } from "@/components/ui/sonner";
+import { Aliases } from "@/pages/Aliases";
 import { Home } from "@/pages/Home";
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
 		<Suspense fallback={<div className="min-h-screen bg-background" />}>
 			<Switch>
 				<Route path="/" component={Home} />
+				<Route path="/aliases" component={Aliases} />
 			</Switch>
 			<Toaster position="bottom-right" />
 		</Suspense>

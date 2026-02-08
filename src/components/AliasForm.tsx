@@ -5,20 +5,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useShellInfo } from "@/hooks/useShellInfo";
-import type { NewAlias } from "@/types/snippet";
+import type { AliasResponse, NewAlias, UpdateAlias } from "@/types/snippet";
 
 interface AliasFormProps {
-	onSubmit: (data: NewAlias) => void;
+	mode?: "create" | "edit";
+	initialData?: AliasResponse;
+	onSubmit: (data: NewAlias | UpdateAlias) => void;
 	onCancel: () => void;
 	isPending: boolean;
 }
 
-export function AliasForm({ onSubmit, onCancel, isPending }: AliasFormProps) {
+export function AliasForm({
+	mode = "create",
+	initialData,
+	onSubmit,
+	onCancel,
+	isPending,
+}: AliasFormProps) {
 	const { available_shells } = useShellInfo();
-	const [name, setName] = useState("");
-	const [command, setCommand] = useState("");
-	const [description, setDescription] = useState("");
-	const [showDescriptionField, setShowDescriptionField] = useState(false);
+	const [name, setName] = useState(initialData?.name ?? "");
+	const [command, setCommand] = useState(initialData?.command ?? "");
+	const [description, setDescription] = useState(
+		initialData?.description ?? "",
+	);
+	const [showDescriptionField, setShowDescriptionField] = useState(
+		!!initialData?.description,
+	);
 	const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
 	const handleDescriptionBlur = () => {
@@ -36,13 +48,23 @@ export function AliasForm({ onSubmit, onCancel, isPending }: AliasFormProps) {
 		e.preventDefault();
 		if (!name.trim() || !command.trim()) return;
 
-		onSubmit({
-			name: name.trim(),
-			command: command.trim(),
-			description: description.trim() || null,
-			shell_types: available_shells,
-		});
+		if (mode === "edit") {
+			onSubmit({
+				name: name.trim(),
+				command: command.trim(),
+				description: description.trim() || null,
+			} satisfies UpdateAlias);
+		} else {
+			onSubmit({
+				name: name.trim(),
+				command: command.trim(),
+				description: description.trim() || null,
+				shell_types: available_shells,
+			} satisfies NewAlias);
+		}
 	};
+
+	const isEdit = mode === "edit";
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
@@ -129,7 +151,13 @@ export function AliasForm({ onSubmit, onCancel, isPending }: AliasFormProps) {
 					disabled={isPending || !name.trim() || !command.trim()}
 					className="bg-success hover:bg-success/90 text-black"
 				>
-					{isPending ? "Creating..." : "Create Alias"}
+					{isPending
+						? isEdit
+							? "Saving..."
+							: "Creating..."
+						: isEdit
+							? "Save Changes"
+							: "Create Alias"}
 				</Button>
 			</div>
 		</form>
