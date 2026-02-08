@@ -125,18 +125,32 @@ pub fn update_alias(
 	load_alias_with_snippets(conn, updated)
 }
 
-/// Delete an alias
+/// Delete an alias and its associated snippets
 pub fn delete_alias(
 	conn: &mut SqliteConnection,
 	alias_id: i32,
 ) -> AppResult<()> {
-	let deleted = diesel::delete(aliases.find(alias_id)).execute(conn)?;
+	conn.transaction(|conn| {
+		let snippet_ids: Vec<i32> = sa::snippet_aliases
+			.filter(sa::alias_id.eq(alias_id))
+			.select(sa::snippet_id)
+			.load(conn)?;
 
-	if deleted == 0 {
-		Err(AppError::AliasNotFound(alias_id))
-	} else {
-		Ok(())
-	}
+		if !snippet_ids.is_empty() {
+			diesel::delete(
+				sn::snippets.filter(sn::id.eq_any(&snippet_ids)),
+			)
+			.execute(conn)?;
+		}
+
+		let deleted =
+			diesel::delete(aliases.find(alias_id)).execute(conn)?;
+		if deleted == 0 {
+			Err(AppError::AliasNotFound(alias_id))
+		} else {
+			Ok(())
+		}
+	})
 }
 
 /// Add a snippet to an alias
@@ -442,17 +456,21 @@ mod tests {
 	}
 
 	#[test]
-	fn test_delete_alias_cascades_junction() {
+	fn test_delete_alias_cascades_snippets() {
 		let mut conn = create_test_connection();
 		let alias = create_test_alias(&mut conn, "cascade_test");
-		let snippet = create_test_snippet(&mut conn, "cascade_snippet", "bash");
+		let snippet =
+			create_test_snippet(&mut conn, "cascade_snippet", "bash");
 
 		add_snippet_to_alias(&mut conn, alias.id, snippet.id).unwrap();
 		delete_alias(&mut conn, alias.id).unwrap();
 
-		// Snippet should still exist
+		// Snippet should be deleted along with the alias
 		let snippet_result =
 			snippet_service::get_snippet_by_id(&mut conn, snippet.id);
-		assert!(snippet_result.is_ok());
+		assert!(matches!(
+			snippet_result,
+			Err(AppError::SnippetNotFound(_))
+		));
 	}
 }
