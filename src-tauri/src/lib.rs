@@ -9,9 +9,15 @@ use std::sync::Mutex;
 
 use config::AppPaths;
 use commands::{
-    create_snippet, delete_snippet, get_output_directory, get_shell_info, get_snippet,
-    get_snippets, get_source_line, open_file_in_editor, open_output_directory, reorder_snippets,
-    sync_all_shells, sync_to_file, toggle_snippet, update_snippet,
+    // Snippet CRUD
+    create_snippet, delete_snippet, get_snippet, get_snippets, reorder_snippets, toggle_snippet,
+    update_snippet,
+    // Alias CRUD
+    add_snippet_to_alias, create_alias, delete_alias, get_alias, get_aliases,
+    remove_snippet_from_alias, update_alias,
+    // Sync & system
+    get_output_directory, get_shell_info, get_source_line, open_file_in_editor,
+    open_output_directory, sync_all_shells, sync_to_file,
 };
 use db::connection::{establish_connection, run_migrations};
 use tauri::Manager;
@@ -48,6 +54,14 @@ pub fn run() {
             delete_snippet,
             toggle_snippet,
             reorder_snippets,
+            // Alias CRUD
+            get_aliases,
+            get_alias,
+            create_alias,
+            update_alias,
+            delete_alias,
+            add_snippet_to_alias,
+            remove_snippet_from_alias,
             // Sync operations
             sync_to_file,
             sync_all_shells,

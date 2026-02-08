@@ -1,6 +1,25 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    aliases (id) {
+        id -> Integer,
+        name -> Text,
+        command -> Text,
+        description -> Nullable<Text>,
+        created_at -> Text,
+        updated_at -> Text,
+    }
+}
+
+diesel::table! {
+    snippet_aliases (id) {
+        id -> Integer,
+        snippet_id -> Integer,
+        alias_id -> Integer,
+    }
+}
+
+diesel::table! {
     snippets (id) {
         id -> Integer,
         name -> Text,
@@ -14,26 +33,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    tags (id) {
-        id -> Integer,
-        name -> Text,
-        color -> Nullable<Text>,
-    }
-}
+diesel::joinable!(snippet_aliases -> aliases (alias_id));
+diesel::joinable!(snippet_aliases -> snippets (snippet_id));
 
-diesel::table! {
-    snippet_tags (snippet_id, tag_id) {
-        snippet_id -> Integer,
-        tag_id -> Integer,
-    }
-}
-
-diesel::joinable!(snippet_tags -> snippets (snippet_id));
-diesel::joinable!(snippet_tags -> tags (tag_id));
-
-diesel::allow_tables_to_appear_in_same_query!(
-    snippets,
-    tags,
-    snippet_tags,
-);
+diesel::allow_tables_to_appear_in_same_query!(aliases, snippet_aliases, snippets,);

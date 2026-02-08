@@ -9,6 +9,9 @@ pub enum AppError {
     #[error("Snippet not found with id: {0}")]
     SnippetNotFound(i32),
 
+    #[error("Alias not found with id: {0}")]
+    AliasNotFound(i32),
+
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 
