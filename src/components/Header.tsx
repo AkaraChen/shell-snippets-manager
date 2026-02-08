@@ -29,6 +29,8 @@ interface HeaderProps {
 	selectedShell?: string;
 	availableShells?: string[];
 	onShellChange?: (shell: string) => void;
+	snippetCount?: number;
+	aliasCount?: number;
 }
 
 export function Header({
@@ -37,6 +39,8 @@ export function Header({
 	selectedShell,
 	availableShells,
 	onShellChange,
+	snippetCount,
+	aliasCount,
 }: HeaderProps) {
 	const [location] = useLocation();
 	const showShellSelector = !!selectedShell && !!availableShells && !!onShellChange;
@@ -111,6 +115,9 @@ export function Header({
 						)}
 					>
 						Snippets
+						{snippetCount != null && (
+							<span className="ml-1.5 text-xs opacity-70">{snippetCount}</span>
+						)}
 					</Link>
 					<Link
 						href="/aliases"
@@ -122,6 +129,9 @@ export function Header({
 						)}
 					>
 						Aliases
+						{aliasCount != null && (
+							<span className="ml-1.5 text-xs opacity-70">{aliasCount}</span>
+						)}
 					</Link>
 				</nav>
 			</div>

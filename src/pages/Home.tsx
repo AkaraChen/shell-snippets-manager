@@ -16,7 +16,7 @@ export function Home() {
 	const { snippets, loading, toggleSnippet, deleteSnippet, reorderSnippets } =
 		useSnippets();
 	const { available_shells, default_shell } = useShellInfo();
-	const { aliasMap } = useAliases();
+	const { aliases, aliasMap } = useAliases();
 	const [selectedShell, setSelectedShell] = useState(default_shell);
 
 	const handleEdit = (snippet: Snippet) => {
@@ -47,6 +47,8 @@ export function Home() {
 					selectedShell={selectedShell}
 					availableShells={sortedShells}
 					onShellChange={setSelectedShell}
+					snippetCount={filteredSnippets.length}
+					aliasCount={aliases.length}
 				/>
 
 				<main className="container mx-auto px-4 py-6 max-w-3xl">

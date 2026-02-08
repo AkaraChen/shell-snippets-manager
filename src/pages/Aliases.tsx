@@ -4,6 +4,7 @@ import { CreateAliasDialog } from "@/components/CreateAliasDialog";
 import { EditAliasDialog } from "@/components/EditAliasDialog";
 import { Header } from "@/components/Header";
 import { useAliases } from "@/hooks/useAliases";
+import { useSnippets } from "@/hooks/useSnippets";
 import type { AliasResponse } from "@/types/snippet";
 
 export function Aliases() {
@@ -12,6 +13,7 @@ export function Aliases() {
 		null,
 	);
 	const { aliases, loading, deleteAlias } = useAliases();
+	const { snippets } = useSnippets();
 
 	const handleDelete = async (id: number) => {
 		await deleteAlias(id);
@@ -22,6 +24,8 @@ export function Aliases() {
 			<Header
 				onCreateClick={() => setCreateDialogOpen(true)}
 				createLabel="Create Alias"
+				snippetCount={snippets.length}
+				aliasCount={aliases.length}
 			/>
 
 			<main className="container mx-auto px-4 py-6 max-w-3xl">

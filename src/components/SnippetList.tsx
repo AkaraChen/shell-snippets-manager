@@ -1,4 +1,4 @@
-import { FileCode, Terminal } from "lucide-react";
+import { FileCode } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import type { Snippet } from "@/types/snippet";
@@ -96,14 +96,6 @@ export function SnippetList({
 
 	return (
 		<div className="space-y-1">
-			<div className="flex items-center gap-2 mb-4 text-muted-foreground">
-				<Terminal className="w-4 h-4" />
-				<span className="text-sm font-(--font-mono)">
-					{localSnippets.length} snippet
-					{localSnippets.length !== 1 ? "s" : ""}
-				</span>
-			</div>
-
 			<Accordion type="single" collapsible className="space-y-2">
 				{localSnippets.map((snippet, index) => (
 					<DraggableSnippetItem

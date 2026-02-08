@@ -1,4 +1,4 @@
-import { Hash, Terminal } from "lucide-react";
+import { Hash } from "lucide-react";
 import { Accordion } from "@/components/ui/accordion";
 import type { AliasResponse } from "@/types/snippet";
 import { AliasItem } from "./AliasItem";
@@ -61,13 +61,6 @@ export function AliasList({
 
 	return (
 		<div className="space-y-1">
-			<div className="flex items-center gap-2 mb-4 text-muted-foreground">
-				<Terminal className="w-4 h-4" />
-				<span className="text-sm font-(--font-mono)">
-					{aliases.length} alias{aliases.length !== 1 ? "es" : ""}
-				</span>
-			</div>
-
 			<Accordion type="single" collapsible className="space-y-2">
 				{aliases.map((alias) => (
 					<AliasItem
