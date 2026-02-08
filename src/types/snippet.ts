@@ -49,4 +49,5 @@ export interface NewAlias {
   name: string;
   command: string;
   description?: string | null;
+  shell_types: string[];
 }

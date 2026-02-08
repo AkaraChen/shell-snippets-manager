@@ -4,6 +4,7 @@ import { aliasApi } from '@/api/snippets';
 import type { NewAlias, AliasResponse } from '@/types/snippet';
 
 const ALIASES_KEY = 'aliases';
+const SNIPPETS_KEY = 'snippets';
 
 export function useCreateAlias() {
   const { mutate: swrMutate } = useSWRConfig();
@@ -15,6 +16,8 @@ export function useCreateAlias() {
         [...(current || []), newAlias],
         false
       );
+      // Revalidate snippets cache since new snippets were auto-generated
+      swrMutate(SNIPPETS_KEY);
     },
   });
 }

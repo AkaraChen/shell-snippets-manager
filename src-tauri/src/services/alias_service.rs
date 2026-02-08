@@ -5,8 +5,10 @@ use crate::db::schema::snippet_aliases::dsl as sa;
 use crate::db::schema::snippets::dsl as sn;
 use crate::error::{AppError, AppResult};
 use crate::models::{
-    Alias, AliasResponse, NewAlias, NewSnippetAlias, Snippet, SnippetResponse, UpdateAlias,
+    Alias, AliasResponse, NewAlias, NewSnippet, NewSnippetAlias, Snippet, SnippetResponse,
+    UpdateAlias,
 };
+use crate::services::snippet_service;
 
 /// Load an alias and its associated snippets into an AliasResponse
 fn load_alias_with_snippets(
@@ -47,14 +49,52 @@ pub fn get_alias_by_id(conn: &mut SqliteConnection, alias_id: i32) -> AppResult<
     load_alias_with_snippets(conn, alias)
 }
 
-/// Create a new alias
-pub fn create_alias(conn: &mut SqliteConnection, new: NewAlias) -> AppResult<AliasResponse> {
+/// Generate shell-specific alias content
+fn generate_alias_content(alias_name: &str, cmd: &str, shell: &str) -> String {
+    match shell {
+        "fish" => format!("alias {} '{}'", alias_name, cmd),
+        _ => format!("alias {}='{}'", alias_name, cmd),
+    }
+}
+
+/// Create a new alias with auto-generated snippets for each shell type
+pub fn create_alias(
+    conn: &mut SqliteConnection,
+    new: NewAlias,
+    shell_types: Vec<String>,
+) -> AppResult<AliasResponse> {
     let alias: Alias = diesel::insert_into(aliases)
         .values(&new)
         .returning(Alias::as_returning())
         .get_result(conn)?;
 
-    Ok(AliasResponse::from_alias(alias, vec![]))
+    let mut snippet_responses = Vec::new();
+
+    for st in &shell_types {
+        let content = generate_alias_content(&alias.name, &alias.command, st);
+        let new_snippet = NewSnippet {
+            name: format!("alias:{}", alias.name),
+            content,
+            shell_type: st.clone(),
+            description: alias.description.clone(),
+            enabled: 1,
+            sort_order: 0,
+        };
+
+        let snippet_resp = snippet_service::create_snippet(conn, new_snippet)?;
+
+        let new_assoc = NewSnippetAlias {
+            snippet_id: snippet_resp.id,
+            alias_id: alias.id,
+        };
+        diesel::insert_into(sa::snippet_aliases)
+            .values(&new_assoc)
+            .execute(conn)?;
+
+        snippet_responses.push(snippet_resp);
+    }
+
+    Ok(AliasResponse::from_alias(alias, snippet_responses))
 }
 
 /// Update an existing alias
@@ -146,7 +186,6 @@ mod tests {
     use super::*;
     use crate::db::test_helpers::create_test_connection;
     use crate::models::NewSnippet;
-    use crate::services::snippet_service;
 
     fn create_test_alias(conn: &mut SqliteConnection, alias_name: &str) -> AliasResponse {
         let new = NewAlias {
@@ -154,7 +193,7 @@ mod tests {
             command: format!("echo {}", alias_name),
             description: Some(format!("Test alias: {}", alias_name)),
         };
-        create_alias(conn, new).expect("Failed to create test alias")
+        create_alias(conn, new, vec![]).expect("Failed to create test alias")
     }
 
     fn create_test_snippet(
@@ -174,7 +213,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_alias() {
+    fn test_create_alias_without_shells() {
         let mut conn = create_test_connection();
 
         let new = NewAlias {
@@ -183,7 +222,7 @@ mod tests {
             description: Some("List all files".to_string()),
         };
 
-        let result = create_alias(&mut conn, new);
+        let result = create_alias(&mut conn, new, vec![]);
         assert!(result.is_ok());
 
         let alias = result.unwrap();
@@ -191,6 +230,52 @@ mod tests {
         assert_eq!(alias.command, "ls -la");
         assert_eq!(alias.description, Some("List all files".to_string()));
         assert!(alias.snippets.is_empty());
+    }
+
+    #[test]
+    fn test_create_alias_with_shells() {
+        let mut conn = create_test_connection();
+
+        let new = NewAlias {
+            name: "ll".to_string(),
+            command: "ls -la".to_string(),
+            description: Some("List all files".to_string()),
+        };
+
+        let shells = vec!["bash".to_string(), "zsh".to_string(), "fish".to_string()];
+        let result = create_alias(&mut conn, new, shells);
+        assert!(result.is_ok());
+
+        let alias = result.unwrap();
+        assert_eq!(alias.name, "ll");
+        assert_eq!(alias.snippets.len(), 3);
+
+        // bash/zsh use = syntax
+        let bash = alias.snippets.iter().find(|s| s.shell_type == "bash").unwrap();
+        assert_eq!(bash.content, "alias ll='ls -la'");
+
+        let zsh = alias.snippets.iter().find(|s| s.shell_type == "zsh").unwrap();
+        assert_eq!(zsh.content, "alias ll='ls -la'");
+
+        // fish uses space syntax
+        let fish = alias.snippets.iter().find(|s| s.shell_type == "fish").unwrap();
+        assert_eq!(fish.content, "alias ll 'ls -la'");
+    }
+
+    #[test]
+    fn test_generate_alias_content() {
+        assert_eq!(
+            generate_alias_content("ll", "ls -la", "bash"),
+            "alias ll='ls -la'"
+        );
+        assert_eq!(
+            generate_alias_content("ll", "ls -la", "zsh"),
+            "alias ll='ls -la'"
+        );
+        assert_eq!(
+            generate_alias_content("ll", "ls -la", "fish"),
+            "alias ll 'ls -la'"
+        );
     }
 
     #[test]

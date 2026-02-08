@@ -21,11 +21,15 @@ pub fn get_alias(db: DbState, id: i32) -> Result<AliasResponse, AppError> {
     alias_service::get_alias_by_id(&mut conn, id)
 }
 
-/// Create a new alias
+/// Create a new alias with auto-generated snippets for each shell type
 #[tauri::command]
-pub fn create_alias(db: DbState, alias: NewAlias) -> Result<AliasResponse, AppError> {
+pub fn create_alias(
+    db: DbState,
+    alias: NewAlias,
+    shell_types: Vec<String>,
+) -> Result<AliasResponse, AppError> {
     let mut conn = db.lock().map_err(|_| AppError::LockError)?;
-    alias_service::create_alias(&mut conn, alias)
+    alias_service::create_alias(&mut conn, alias, shell_types)
 }
 
 /// Update an existing alias

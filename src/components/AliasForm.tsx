@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
 import type { NewAlias } from '@/types/snippet';
+import { useShellInfo } from '@/hooks/useShellInfo';
 
 interface AliasFormProps {
   onSubmit: (data: NewAlias) => void;
@@ -13,6 +14,7 @@ interface AliasFormProps {
 }
 
 export function AliasForm({ onSubmit, onCancel, isPending }: AliasFormProps) {
+  const { available_shells } = useShellInfo();
   const [name, setName] = useState('');
   const [command, setCommand] = useState('');
   const [description, setDescription] = useState('');
@@ -38,6 +40,7 @@ export function AliasForm({ onSubmit, onCancel, isPending }: AliasFormProps) {
       name: name.trim(),
       command: command.trim(),
       description: description.trim() || null,
+      shell_types: available_shells,
     });
   };
 
