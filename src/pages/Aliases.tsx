@@ -1,17 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { AliasList } from "@/components/AliasList";
-import { EditAliasDialog } from "@/components/EditAliasDialog";
 import { Header } from "@/components/Header";
 import { useAliases } from "@/hooks/useAliases";
 import { useSnippets } from "@/hooks/useSnippets";
 import { openCreateWindow } from "@/lib/createWindow";
-import type { AliasResponse } from "@/types/snippet";
 
 export function Aliases() {
-	const [editingAlias, setEditingAlias] = useState<AliasResponse | null>(
-		null,
-	);
 	const { aliases, loading, deleteAlias, mutate: mutateAliases } = useAliases();
 	const { snippets, refetch: refetchSnippets } = useSnippets();
 
@@ -42,16 +37,10 @@ export function Aliases() {
 				<AliasList
 					aliases={aliases}
 					loading={loading}
-					onEdit={setEditingAlias}
+					onEdit={(alias) => openCreateWindow("alias", alias.id)}
 					onDelete={handleDelete}
 				/>
 			</main>
-
-			<EditAliasDialog
-				alias={editingAlias}
-				open={!!editingAlias}
-				onOpenChange={(open) => !open && setEditingAlias(null)}
-			/>
 		</div>
 	);
 }

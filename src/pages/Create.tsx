@@ -1,8 +1,10 @@
 import { useRef, useState, useMemo, Suspense } from "react";
+import useSWR from "swr";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Play, Save } from "lucide-react";
 import { toast } from "sonner";
+import { snippetApi, aliasApi } from "@/api/snippets";
 import { CodeEditor } from "@/components/CodeEditor";
 import { Terminal, type TerminalHandle } from "@/components/Terminal";
 import { Button } from "@/components/ui/button";
@@ -19,7 +21,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateAlias } from "@/hooks/useCreateAlias";
 import { useCreateSnippet } from "@/hooks/useCreateSnippet";
+import { useUpdateSnippet } from "@/hooks/useUpdateSnippet";
+import { useUpdateAlias } from "@/hooks/useUpdateAlias";
 import { useShellInfo } from "@/hooks/useShellInfo";
+import type { AliasResponse, Snippet } from "@/types/snippet";
 
 function capitalizeShellName(shell: string): string {
 	const specialCases: Record<string, string> = {
@@ -30,29 +35,51 @@ function capitalizeShellName(shell: string): string {
 	return specialCases[shell] ?? shell.charAt(0).toUpperCase() + shell.slice(1);
 }
 
+function useEditData(tab: string, editId: number | null) {
+	const { data: snippetData } = useSWR<Snippet>(
+		tab === "snippet" && editId ? `edit-snippet-${editId}` : null,
+		() => snippetApi.getById(editId!),
+		{ suspense: true },
+	);
+	const { data: aliasData } = useSWR<AliasResponse>(
+		tab === "alias" && editId ? `edit-alias-${editId}` : null,
+		() => aliasApi.getById(editId!),
+		{ suspense: true },
+	);
+	return tab === "snippet" ? snippetData : aliasData;
+}
+
 function CreateContent() {
 	const params = new URLSearchParams(window.location.search);
 	const initialTab = params.get("tab") === "alias" ? "alias" : "snippet";
+	const editId = params.get("editId") ? Number(params.get("editId")) : null;
+	const isEditMode = editId != null;
+
+	const editData = useEditData(initialTab, editId);
 
 	const { available_shells, default_shell } = useShellInfo();
 	const createSnippet = useCreateSnippet();
 	const createAlias = useCreateAlias();
+	const updateSnippet = useUpdateSnippet();
+	const updateAlias = useUpdateAlias();
 
 	const terminalRef = useRef<TerminalHandle>(null);
 	const [activeTab, setActiveTab] = useState(initialTab);
 
-	// Snippet form state
-	const [snippetName, setSnippetName] = useState("");
-	const [snippetContent, setSnippetContent] = useState("");
-	const [snippetShell, setSnippetShell] = useState(default_shell);
-	const [snippetDescription, setSnippetDescription] = useState("");
-	const [showSnippetDesc, setShowSnippetDesc] = useState(false);
+	// Snippet form state — pre-populate from editData when editing
+	const snippetEdit = isEditMode && initialTab === "snippet" ? (editData as Snippet) : null;
+	const [snippetName, setSnippetName] = useState(snippetEdit?.name ?? "");
+	const [snippetContent, setSnippetContent] = useState(snippetEdit?.content ?? "");
+	const [snippetShell, setSnippetShell] = useState(snippetEdit?.shell_type ?? default_shell);
+	const [snippetDescription, setSnippetDescription] = useState(snippetEdit?.description ?? "");
+	const [showSnippetDesc, setShowSnippetDesc] = useState(!!snippetEdit?.description);
 
-	// Alias form state
-	const [aliasName, setAliasName] = useState("");
-	const [aliasCommand, setAliasCommand] = useState("");
-	const [aliasDescription, setAliasDescription] = useState("");
-	const [showAliasDesc, setShowAliasDesc] = useState(false);
+	// Alias form state — pre-populate from editData when editing
+	const aliasEdit = isEditMode && initialTab === "alias" ? (editData as AliasResponse) : null;
+	const [aliasName, setAliasName] = useState(aliasEdit?.name ?? "");
+	const [aliasCommand, setAliasCommand] = useState(aliasEdit?.command ?? "");
+	const [aliasDescription, setAliasDescription] = useState(aliasEdit?.description ?? "");
+	const [showAliasDesc, setShowAliasDesc] = useState(!!aliasEdit?.description);
 
 	const sortedShells = useMemo(() => {
 		const others = available_shells
@@ -76,13 +103,26 @@ function CreateContent() {
 				toast.error("Name and content are required");
 				return;
 			}
-			await createSnippet.mutateAsync({
-				name,
-				content,
-				shell_type: snippetShell,
-				description: snippetDescription.trim() || null,
-			});
-			toast.success("Snippet created");
+			if (isEditMode) {
+				await updateSnippet.mutateAsync({
+					id: editId,
+					updates: {
+						name,
+						content,
+						shell_type: snippetShell,
+						description: snippetDescription.trim() || null,
+					},
+				});
+				toast.success("Snippet updated");
+			} else {
+				await createSnippet.mutateAsync({
+					name,
+					content,
+					shell_type: snippetShell,
+					description: snippetDescription.trim() || null,
+				});
+				toast.success("Snippet created");
+			}
 		} else {
 			const name = aliasName.trim();
 			const command = aliasCommand.trim();
@@ -90,20 +130,36 @@ function CreateContent() {
 				toast.error("Name and command are required");
 				return;
 			}
-			await createAlias.mutateAsync({
-				name,
-				command,
-				description: aliasDescription.trim() || null,
-				shell_types: available_shells,
-			});
-			toast.success("Alias created");
+			if (isEditMode) {
+				await updateAlias.mutateAsync({
+					id: editId,
+					updates: {
+						name,
+						command,
+						description: aliasDescription.trim() || null,
+					},
+				});
+				toast.success("Alias updated");
+			} else {
+				await createAlias.mutateAsync({
+					name,
+					command,
+					description: aliasDescription.trim() || null,
+					shell_types: available_shells,
+				});
+				toast.success("Alias created");
+			}
 		}
 
 		await emit("data-changed");
 		await getCurrentWindow().close();
 	};
 
-	const isPending = createSnippet.isPending || createAlias.isPending;
+	const isPending =
+		createSnippet.isPending ||
+		createAlias.isPending ||
+		updateSnippet.isPending ||
+		updateAlias.isPending;
 	const canSave =
 		activeTab === "snippet"
 			? snippetName.trim() && snippetContent.trim()
@@ -113,16 +169,22 @@ function CreateContent() {
 		<div className="flex flex-col h-screen bg-background text-foreground">
 			{/* Top bar */}
 			<header className="flex items-center justify-between px-4 h-12 border-b border-border shrink-0" data-tauri-drag-region>
-				<Tabs value={activeTab} onValueChange={setActiveTab}>
-					<TabsList variant="line">
-						<TabsTrigger value="snippet" className="text-sm font-medium">
-							Snippet
-						</TabsTrigger>
-						<TabsTrigger value="alias" className="text-sm font-medium">
-							Alias
-						</TabsTrigger>
-					</TabsList>
-				</Tabs>
+				{isEditMode ? (
+					<span className="text-sm font-medium text-muted-foreground">
+						Edit {activeTab === "snippet" ? "Snippet" : "Alias"}
+					</span>
+				) : (
+					<Tabs value={activeTab} onValueChange={setActiveTab}>
+						<TabsList variant="line">
+							<TabsTrigger value="snippet" className="text-sm font-medium">
+								Snippet
+							</TabsTrigger>
+							<TabsTrigger value="alias" className="text-sm font-medium">
+								Alias
+							</TabsTrigger>
+						</TabsList>
+					</Tabs>
+				)}
 				<Button
 					onClick={handleSave}
 					disabled={!canSave || isPending}
@@ -130,7 +192,7 @@ function CreateContent() {
 					className="gap-2 bg-success hover:bg-success/90 text-black font-medium"
 				>
 					<Save className="w-4 h-4" />
-					Save
+					{isEditMode ? "Update" : "Save"}
 				</Button>
 			</header>
 

@@ -50,6 +50,7 @@ export const syncApi = {
 
 export const aliasApi = {
 	getAll: () => invoke<AliasResponse[]>("get_aliases"),
+	getById: (id: number) => invoke<AliasResponse>("get_alias", { id }),
 	create: (alias: NewAlias) => {
 		const { shell_types, ...aliasData } = alias;
 		return invoke<AliasResponse>("create_alias", {

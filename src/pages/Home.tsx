@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { EditSnippetDialog } from "@/components/EditSnippetDialog";
 import { Header } from "@/components/Header";
 import { SnippetList } from "@/components/SnippetList";
 import { useAliases } from "@/hooks/useAliases";
@@ -12,7 +11,6 @@ import { openCreateWindow } from "@/lib/createWindow";
 import type { Snippet } from "@/types/snippet";
 
 export function Home() {
-	const [editingSnippet, setEditingSnippet] = useState<Snippet | null>(null);
 	const { snippets, loading, toggleSnippet, deleteSnippet, reorderSnippets, refetch } =
 		useSnippets();
 	const { available_shells, default_shell } = useShellInfo();
@@ -31,7 +29,7 @@ export function Home() {
 	}, [refetch, mutateAliases]);
 
 	const handleEdit = (snippet: Snippet) => {
-		setEditingSnippet(snippet);
+		openCreateWindow("snippet", snippet.id);
 	};
 
 	const handleDelete = async (id: number) => {
@@ -73,12 +71,6 @@ export function Home() {
 						aliasMap={aliasMap}
 					/>
 				</main>
-
-				<EditSnippetDialog
-					snippet={editingSnippet}
-					open={!!editingSnippet}
-					onOpenChange={(open) => !open && setEditingSnippet(null)}
-				/>
 			</div>
 		</DndProvider>
 	);
