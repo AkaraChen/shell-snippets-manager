@@ -20,6 +20,9 @@ pub enum AppError {
 
 	#[error("Path error: {0}")]
 	PathError(String),
+
+	#[error("PTY error: {0}")]
+	PtyError(String),
 }
 
 impl Serialize for AppError {

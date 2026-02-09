@@ -1,7 +1,17 @@
 {
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "default",
-	"description": "Capability for the main window",
-	"windows": ["main"],
-	"permissions": ["core:default", "opener:default"]
+	"description": "Capability for all app windows",
+	"windows": ["main", "create"],
+	"permissions": [
+		"core:default",
+		"opener:default",
+		"core:event:default",
+		"core:window:default",
+		"core:window:allow-create",
+		"core:window:allow-close",
+		"core:window:allow-set-focus",
+		"core:webview:default",
+		"core:webview:allow-create-webview-window"
+	]
 }

@@ -1,23 +1,34 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { CreateSnippetDialog } from "@/components/CreateSnippetDialog";
 import { EditSnippetDialog } from "@/components/EditSnippetDialog";
 import { Header } from "@/components/Header";
 import { SnippetList } from "@/components/SnippetList";
 import { useAliases } from "@/hooks/useAliases";
 import { useShellInfo } from "@/hooks/useShellInfo";
 import { useSnippets } from "@/hooks/useSnippets";
+import { openCreateWindow } from "@/lib/createWindow";
 import type { Snippet } from "@/types/snippet";
 
 export function Home() {
-	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [editingSnippet, setEditingSnippet] = useState<Snippet | null>(null);
-	const { snippets, loading, toggleSnippet, deleteSnippet, reorderSnippets } =
+	const { snippets, loading, toggleSnippet, deleteSnippet, reorderSnippets, refetch } =
 		useSnippets();
 	const { available_shells, default_shell } = useShellInfo();
-	const { aliases, aliasMap } = useAliases();
+	const { aliases, aliasMap, mutate: mutateAliases } = useAliases();
 	const [selectedShell, setSelectedShell] = useState(default_shell);
+
+	// Listen for data changes from the create window
+	useEffect(() => {
+		const unlisten = listen("data-changed", () => {
+			refetch();
+			mutateAliases();
+		});
+		return () => {
+			unlisten.then((fn) => fn());
+		};
+	}, [refetch, mutateAliases]);
 
 	const handleEdit = (snippet: Snippet) => {
 		setEditingSnippet(snippet);
@@ -43,7 +54,7 @@ export function Home() {
 		<DndProvider backend={HTML5Backend}>
 			<div className="min-h-screen bg-background text-foreground">
 				<Header
-					onCreateClick={() => setCreateDialogOpen(true)}
+					onCreateClick={() => openCreateWindow("snippet")}
 					selectedShell={selectedShell}
 					availableShells={sortedShells}
 					onShellChange={setSelectedShell}
@@ -62,11 +73,6 @@ export function Home() {
 						aliasMap={aliasMap}
 					/>
 				</main>
-
-				<CreateSnippetDialog
-					open={createDialogOpen}
-					onOpenChange={setCreateDialogOpen}
-				/>
 
 				<EditSnippetDialog
 					snippet={editingSnippet}

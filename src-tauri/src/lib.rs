@@ -32,9 +32,15 @@ use commands::{
 	toggle_snippet,
 	update_alias,
 	update_snippet,
+	// PTY
+	close_pty_session,
+	create_pty_session,
+	resize_pty,
+	write_to_pty,
 };
 use config::AppPaths;
 use db::connection::{establish_connection, run_migrations};
+use services::pty_service;
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -57,6 +63,7 @@ pub fn run() {
 			// Store both connection and paths in app state
 			app.manage(Mutex::new(conn));
 			app.manage(paths);
+			app.manage(pty_service::create_session_map());
 
 			Ok(())
 		})
@@ -86,6 +93,11 @@ pub fn run() {
 			open_file_in_editor,
 			// Shell info
 			get_shell_info,
+			// PTY
+			create_pty_session,
+			write_to_pty,
+			resize_pty,
+			close_pty_session,
 		])
 		.run(tauri::generate_context!())
 		.expect("error while running tauri application");
