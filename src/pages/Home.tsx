@@ -47,7 +47,7 @@ export function Home() {
 					selectedShell={selectedShell}
 					availableShells={sortedShells}
 					onShellChange={setSelectedShell}
-					snippetCount={filteredSnippets.length}
+					snippetCount={snippets.length}
 					aliasCount={aliases.length}
 				/>
 
