@@ -38,6 +38,7 @@ thiserror = "1.0"
 
 # XDG directories
 etcetera = "0.8"
+fix-path-env = { git = "https://github.com/tauri-apps/fix-path-env-rs" }
 
 # PTY
 portable-pty = "0.8"
