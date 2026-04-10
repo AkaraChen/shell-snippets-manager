@@ -5,6 +5,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { Header } from "@/components/Header";
 import { SnippetList } from "@/components/SnippetList";
 import { useAliases } from "@/hooks/useAliases";
+import { useEnvironments } from "@/hooks/useEnvironments";
 import { useShellInfo } from "@/hooks/useShellInfo";
 import { useSnippets } from "@/hooks/useSnippets";
 import { openCreateWindow } from "@/lib/createWindow";
@@ -15,6 +16,7 @@ export function Home() {
 		useSnippets();
 	const { available_shells, default_shell } = useShellInfo();
 	const { aliases, aliasMap, mutate: mutateAliases } = useAliases();
+	const { environments } = useEnvironments();
 	const [selectedShell, setSelectedShell] = useState(default_shell);
 
 	// Listen for data changes from the create window
@@ -58,6 +60,7 @@ export function Home() {
 					onShellChange={setSelectedShell}
 					snippetCount={snippets.length}
 					aliasCount={aliases.length}
+					environmentCount={environments.length}
 				/>
 
 				<main className="container mx-auto px-4 py-6 max-w-3xl">
