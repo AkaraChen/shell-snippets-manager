@@ -3,6 +3,7 @@ import { Route, Switch } from "wouter";
 import { Toaster } from "@/components/ui/sonner";
 import { Aliases } from "@/pages/Aliases";
 import { Create } from "@/pages/Create";
+import { Environments } from "@/pages/Environments";
 import { Home } from "@/pages/Home";
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
 			<Switch>
 				<Route path="/" component={Home} />
 				<Route path="/aliases" component={Aliases} />
+				<Route path="/environments" component={Environments} />
 				<Route path="/create" component={Create} />
 			</Switch>
 			<Toaster position="bottom-right" />

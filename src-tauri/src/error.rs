@@ -12,6 +12,12 @@ pub enum AppError {
 	#[error("Alias not found with id: {0}")]
 	AliasNotFound(i32),
 
+	#[error("Environment not found with id: {0}")]
+	EnvironmentNotFound(i32),
+
+	#[error("Environment variable not found with id: {0}")]
+	EnvironmentVariableNotFound(i32),
+
 	#[error("IO error: {0}")]
 	IoError(#[from] std::io::Error),
 

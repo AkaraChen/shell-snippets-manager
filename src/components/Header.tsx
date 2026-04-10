@@ -31,6 +31,7 @@ interface HeaderProps {
 	onShellChange?: (shell: string) => void;
 	snippetCount?: number;
 	aliasCount?: number;
+	environmentCount?: number;
 }
 
 export function Header({
@@ -41,6 +42,7 @@ export function Header({
 	onShellChange,
 	snippetCount,
 	aliasCount,
+	environmentCount,
 }: HeaderProps) {
 	const [location] = useLocation();
 	const showShellSelector = !!selectedShell && !!availableShells && !!onShellChange;
@@ -131,6 +133,20 @@ export function Header({
 						Aliases
 						{aliasCount != null && (
 							<span className="ml-1.5 text-xs opacity-70">{aliasCount}</span>
+						)}
+					</Link>
+					<Link
+						href="/environments"
+						className={cn(
+							"px-1 py-2 text-sm font-(--font-mono) border-b-2 transition-colors",
+							location === "/environments"
+								? "border-success text-success"
+								: "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
+						)}
+					>
+						Environments
+						{environmentCount != null && (
+							<span className="ml-1.5 text-xs opacity-70">{environmentCount}</span>
 						)}
 					</Link>
 				</nav>

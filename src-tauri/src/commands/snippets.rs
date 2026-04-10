@@ -7,7 +7,7 @@ use crate::config::AppPaths;
 use crate::db::DbConnection;
 use crate::error::AppError;
 use crate::models::{NewSnippet, ShellType, SnippetResponse, UpdateSnippet};
-use crate::services::{snippet_service, sync_service};
+use crate::services::{environment_service, snippet_service, sync_service};
 
 type DbState<'a> = State<'a, DbConnection>;
 
@@ -96,9 +96,10 @@ pub fn sync_to_file(
 		&mut conn,
 		shell.as_str(),
 	)?;
+	let env_vars = environment_service::get_enabled_env_vars(&mut conn)?;
 
 	let output_path =
-		sync_service::sync_to_file(snippets, shell, output_dir.to_path_buf())?;
+		sync_service::sync_to_file(snippets, env_vars, shell, output_dir.to_path_buf())?;
 
 	Ok(output_path.display().to_string())
 }
@@ -114,6 +115,7 @@ pub fn sync_all_shells(
 
 	let shells = vec![ShellType::Bash, ShellType::Zsh, ShellType::Fish];
 
+	let env_vars = environment_service::get_enabled_env_vars(&mut conn)?;
 	let mut output_paths = Vec::new();
 
 	for shell in shells {
@@ -122,9 +124,10 @@ pub fn sync_all_shells(
 			shell.as_str(),
 		)?;
 
-		if !snippets.is_empty() {
+		if !snippets.is_empty() || !env_vars.is_empty() {
 			let path = sync_service::sync_to_file(
 				snippets,
+				env_vars.clone(),
 				shell,
 				output_dir.clone(),
 			)?;
