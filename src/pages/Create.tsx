@@ -35,6 +35,15 @@ function capitalizeShellName(shell: string): string {
 	return specialCases[shell] ?? shell.charAt(0).toUpperCase() + shell.slice(1);
 }
 
+function isEditableContextMenuTarget(target: EventTarget | null): boolean {
+	if (!(target instanceof HTMLElement)) return false;
+	return Boolean(
+		target.closest(
+			'input, textarea, select, [contenteditable="true"], .cm-editor, .xterm',
+		),
+	);
+}
+
 function useEditData(tab: string, editId: number | null) {
 	const { data: snippetData } = useSWR<Snippet>(
 		tab === "snippet" && editId ? `edit-snippet-${editId}` : null,
@@ -64,6 +73,8 @@ function CreateContent() {
 	const updateAlias = useUpdateAlias();
 
 	const terminalRef = useRef<TerminalHandle>(null);
+	const snippetNameRef = useRef<HTMLInputElement>(null);
+	const aliasNameRef = useRef<HTMLInputElement>(null);
 	const [activeTab, setActiveTab] = useState(initialTab);
 	const [terminalOpen, setTerminalOpen] = useState(() => {
 		return localStorage.getItem("ssm.editor.terminalOpen") === "true";
@@ -167,6 +178,23 @@ function CreateContent() {
 	}, [terminalOpen]);
 
 	useEffect(() => {
+		const input = activeTab === "snippet" ? snippetNameRef.current : aliasNameRef.current;
+		input?.focus();
+		input?.select();
+	}, [activeTab]);
+
+	useEffect(() => {
+		const onContextMenu = (event: MouseEvent) => {
+			if (!isEditableContextMenuTarget(event.target)) {
+				event.preventDefault();
+			}
+		};
+
+		window.addEventListener("contextmenu", onContextMenu);
+		return () => window.removeEventListener("contextmenu", onContextMenu);
+	}, []);
+
+	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
 			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
 				event.preventDefault();
@@ -179,6 +207,10 @@ function CreateContent() {
 			if (event.key === "Escape" && terminalOpen) {
 				event.preventDefault();
 				setTerminalOpen(false);
+			}
+			if (event.key === "Escape" && status) {
+				event.preventDefault();
+				setStatus("");
 			}
 		};
 		window.addEventListener("keydown", onKeyDown);
@@ -196,7 +228,7 @@ function CreateContent() {
 			: !!aliasName.trim() && !!aliasCommand.trim();
 
 	return (
-		<div className="flex flex-col h-screen bg-background text-foreground">
+		<div className="flex flex-col h-screen bg-background text-foreground" spellCheck={false}>
 			{/* Top bar */}
 			<header className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border px-4" data-tauri-drag-region>
 				{isEditMode ? (
@@ -259,6 +291,7 @@ function CreateContent() {
 									<div className="flex-1 space-y-1.5">
 										<Label htmlFor="snippet-name">Name</Label>
 										<Input
+											ref={snippetNameRef}
 											id="snippet-name"
 											placeholder="e.g., List all files"
 											value={snippetName}
@@ -310,6 +343,7 @@ function CreateContent() {
 								<div className="space-y-1.5">
 									<Label htmlFor="alias-name">Name</Label>
 									<Input
+										ref={aliasNameRef}
 										id="alias-name"
 										placeholder="e.g., ll"
 										value={aliasName}

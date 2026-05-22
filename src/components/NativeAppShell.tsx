@@ -15,7 +15,14 @@ import {
 	Trash2,
 	Pencil,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+	type KeyboardEvent,
+	type ReactNode,
+} from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { syncApi } from "@/api/snippets";
@@ -63,6 +70,31 @@ const defaultLayout: LayoutState = {
 	selected: {},
 	inspectorCollapsed: false,
 };
+
+function isEditableTarget(target: EventTarget | null): boolean {
+	if (!(target instanceof HTMLElement)) return false;
+	return Boolean(
+		target.closest(
+			'input, textarea, select, [contenteditable="true"], .cm-editor, .xterm',
+		),
+	);
+}
+
+function useDelayedFlag(value: boolean, delay = 200): boolean {
+	const [visible, setVisible] = useState(false);
+
+	useEffect(() => {
+		if (!value) {
+			setVisible(false);
+			return;
+		}
+
+		const timeout = window.setTimeout(() => setVisible(true), delay);
+		return () => window.clearTimeout(timeout);
+	}, [value, delay]);
+
+	return visible;
+}
 
 function capitalizeShellName(shell: string): string {
 	const specialCases: Record<string, string> = {
@@ -146,6 +178,7 @@ function SidebarButton({
 		<button
 			type="button"
 			onClick={onClick}
+			tabIndex={active ? 0 : -1}
 			className={cn(
 				"flex h-8 w-full select-none items-center gap-2 rounded-md px-2 text-left text-sm",
 				active
@@ -177,6 +210,8 @@ function SnippetRow({
 		<button
 			type="button"
 			onClick={onSelect}
+			tabIndex={selected ? 0 : -1}
+			aria-selected={selected}
 			className={cn(
 				"group flex w-full select-none items-center gap-3 border-b border-border px-3 py-2 text-left",
 				selected ? "bg-accent text-accent-foreground" : "hover:bg-accent/55",
@@ -223,6 +258,8 @@ function AliasRow({
 		<button
 			type="button"
 			onClick={onSelect}
+			tabIndex={selected ? 0 : -1}
+			aria-selected={selected}
 			className={cn(
 				"flex w-full select-none items-center gap-3 border-b border-border px-3 py-2 text-left",
 				selected ? "bg-accent text-accent-foreground" : "hover:bg-accent/55",
@@ -253,6 +290,8 @@ function EnvironmentRow({
 		<button
 			type="button"
 			onClick={onSelect}
+			tabIndex={selected ? 0 : -1}
+			aria-selected={selected}
 			className={cn(
 				"flex w-full select-none items-center gap-3 border-b border-border px-3 py-2 text-left",
 				selected ? "bg-accent text-accent-foreground" : "hover:bg-accent/55",
@@ -305,10 +344,28 @@ export function NativeAppShell() {
 	const [status, setStatus] = useState<StatusState>({ message: "", tone: "idle" });
 	const [environmentDialogOpen, setEnvironmentDialogOpen] = useState(false);
 	const [editingEnvironment, setEditingEnvironment] = useState<Environment | undefined>();
+	const showSnippetsLoading = useDelayedFlag(snippetsLoading);
+	const showAliasesLoading = useDelayedFlag(aliasesLoading);
+	const showEnvLoading = useDelayedFlag(envLoading);
 
 	useEffect(() => {
 		localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout));
 	}, [layout]);
+
+	useEffect(() => {
+		document.getElementById("native-search")?.focus();
+	}, []);
+
+	useEffect(() => {
+		const onContextMenu = (event: MouseEvent) => {
+			if (!isEditableTarget(event.target)) {
+				event.preventDefault();
+			}
+		};
+
+		window.addEventListener("contextmenu", onContextMenu);
+		return () => window.removeEventListener("contextmenu", onContextMenu);
+	}, []);
 
 	const setSection = (section: Section) => {
 		setLayout((current) => ({ ...current, section }));
@@ -415,10 +472,11 @@ export function NativeAppShell() {
 		);
 	}, [environments, query]);
 
-	const selectedSnippet = snippets.find((snippet) => snippet.id === layout.selected.snippets) ?? filteredSnippets[0];
-	const selectedAlias = aliases.find((alias) => alias.id === layout.selected.aliases) ?? filteredAliases[0];
+	const selectedSnippet =
+		filteredSnippets.find((snippet) => snippet.id === layout.selected.snippets) ?? filteredSnippets[0];
+	const selectedAlias = filteredAliases.find((alias) => alias.id === layout.selected.aliases) ?? filteredAliases[0];
 	const selectedEnvironment =
-		environments.find((environment) => environment.id === layout.selected.environments) ??
+		filteredEnvironments.find((environment) => environment.id === layout.selected.environments) ??
 		filteredEnvironments[0];
 
 	const currentTitle =
@@ -476,9 +534,88 @@ export function NativeAppShell() {
 		setStatus({ message: "Snippet order updated", tone: "success" });
 	};
 
+	const selectRelativeItem = (direction: -1 | 1) => {
+		const items =
+			layout.section === "snippets"
+				? filteredSnippets
+				: layout.section === "aliases"
+					? filteredAliases
+					: filteredEnvironments;
+		if (items.length === 0) return;
+
+		const currentId = layout.selected[layout.section];
+		const currentIndex = items.findIndex((item) => item.id === currentId);
+		const fallbackIndex = direction === 1 ? -1 : items.length;
+		const nextIndex = Math.min(
+			Math.max((currentIndex === -1 ? fallbackIndex : currentIndex) + direction, 0),
+			items.length - 1,
+		);
+		selectItem(layout.section, items[nextIndex].id);
+	};
+
+	const handleEditSelected = () => {
+		if (layout.section === "snippets" && selectedSnippet) {
+			openCreateWindow("snippet", selectedSnippet.id);
+		}
+		if (layout.section === "aliases" && selectedAlias) {
+			openCreateWindow("alias", selectedAlias.id);
+		}
+		if (layout.section === "environments" && selectedEnvironment) {
+			setEditingEnvironment(selectedEnvironment);
+			setEnvironmentDialogOpen(true);
+		}
+	};
+
+	const handleDeleteSelected = () => {
+		if (layout.section === "snippets" && selectedSnippet) void handleDeleteSnippet(selectedSnippet);
+		if (layout.section === "aliases" && selectedAlias) void handleDeleteAlias(selectedAlias);
+		if (layout.section === "environments" && selectedEnvironment) {
+			void handleDeleteEnvironment(selectedEnvironment);
+		}
+	};
+
+	const handleShellKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (isEditableTarget(event.target)) {
+			if (event.key === "Escape") {
+				setSearch("");
+				(event.target as HTMLElement).blur();
+			}
+			return;
+		}
+
+		if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+			event.preventDefault();
+			selectRelativeItem(event.key === "ArrowDown" ? 1 : -1);
+		}
+		if (event.key === "Enter") {
+			event.preventDefault();
+			handleEditSelected();
+		}
+		if (event.key === " " && layout.section === "snippets" && selectedSnippet) {
+			event.preventDefault();
+			void toggleSnippet(selectedSnippet.id);
+		}
+		if (event.key === "Backspace" || event.key === "Delete") {
+			event.preventDefault();
+			handleDeleteSelected();
+		}
+		if (event.key === "Escape") {
+			event.preventDefault();
+			if (query) {
+				setSearch("");
+			} else if (!layout.inspectorCollapsed) {
+				setLayout((current) => ({ ...current, inspectorCollapsed: true }));
+			}
+		}
+	};
+
 	return (
 		<DndProvider backend={HTML5Backend}>
-			<div className="flex h-screen select-none bg-background text-foreground">
+			<div
+				className="flex h-screen select-none bg-background text-foreground"
+				onKeyDown={handleShellKeyDown}
+				spellCheck={false}
+			>
 				<aside className="flex w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-2 py-3 text-sidebar-foreground">
 					<div className="mb-3 flex items-center gap-2 px-2">
 						<div className="flex size-7 items-center justify-center rounded-md bg-sidebar-accent">
@@ -593,7 +730,7 @@ export function NativeAppShell() {
 					<div className="flex min-h-0 flex-1">
 						<div className="min-w-0 flex-1 overflow-auto">
 							{layout.section === "snippets" && (
-								<ListPane loading={snippetsLoading} empty={filteredSnippets.length === 0}>
+								<ListPane loading={showSnippetsLoading} empty={!snippetsLoading && filteredSnippets.length === 0}>
 									{filteredSnippets.map((snippet) => (
 										<SnippetRow
 											key={snippet.id}
@@ -607,7 +744,7 @@ export function NativeAppShell() {
 								</ListPane>
 							)}
 							{layout.section === "aliases" && (
-								<ListPane loading={aliasesLoading} empty={filteredAliases.length === 0}>
+								<ListPane loading={showAliasesLoading} empty={!aliasesLoading && filteredAliases.length === 0}>
 									{filteredAliases.map((alias) => (
 										<AliasRow
 											key={alias.id}
@@ -619,7 +756,7 @@ export function NativeAppShell() {
 								</ListPane>
 							)}
 							{layout.section === "environments" && (
-								<ListPane loading={envLoading} empty={filteredEnvironments.length === 0}>
+								<ListPane loading={showEnvLoading} empty={!envLoading && filteredEnvironments.length === 0}>
 									{filteredEnvironments.map((environment) => (
 										<EnvironmentRow
 											key={environment.id}
