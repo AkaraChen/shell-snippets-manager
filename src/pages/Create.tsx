@@ -1,9 +1,8 @@
-import { useRef, useState, useMemo, Suspense } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import useSWR from "swr";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Play, Save } from "lucide-react";
-import { toast } from "sonner";
+import { PanelRightClose, PanelRightOpen, Play, Save } from "lucide-react";
 import { snippetApi, aliasApi } from "@/api/snippets";
 import { CodeEditor } from "@/components/CodeEditor";
 import { Terminal, type TerminalHandle } from "@/components/Terminal";
@@ -24,6 +23,7 @@ import { useCreateSnippet } from "@/hooks/useCreateSnippet";
 import { useUpdateSnippet } from "@/hooks/useUpdateSnippet";
 import { useUpdateAlias } from "@/hooks/useUpdateAlias";
 import { useShellInfo } from "@/hooks/useShellInfo";
+import { cn } from "@/lib/utils";
 import type { AliasResponse, Snippet } from "@/types/snippet";
 
 function capitalizeShellName(shell: string): string {
@@ -65,6 +65,10 @@ function CreateContent() {
 
 	const terminalRef = useRef<TerminalHandle>(null);
 	const [activeTab, setActiveTab] = useState(initialTab);
+	const [terminalOpen, setTerminalOpen] = useState(() => {
+		return localStorage.getItem("ssm.editor.terminalOpen") === "true";
+	});
+	const [status, setStatus] = useState("");
 
 	// Snippet form state — pre-populate from editData when editing
 	const snippetEdit = isEditMode && initialTab === "snippet" ? (editData as Snippet) : null;
@@ -91,16 +95,19 @@ function CreateContent() {
 	const handleRun = () => {
 		const code = activeTab === "snippet" ? snippetContent : aliasCommand;
 		if (code.trim() && terminalRef.current) {
+			setTerminalOpen(true);
 			terminalRef.current.runCode(code);
+			setStatus("Running");
 		}
 	};
 
 	const handleSave = async () => {
+		setStatus("");
 		if (activeTab === "snippet") {
 			const name = snippetName.trim();
 			const content = snippetContent.trim();
 			if (!name || !content) {
-				toast.error("Name and content are required");
+				setStatus("Name and content are required");
 				return;
 			}
 			if (isEditMode) {
@@ -113,7 +120,7 @@ function CreateContent() {
 						description: snippetDescription.trim() || null,
 					},
 				});
-				toast.success("Snippet updated");
+				setStatus("Snippet updated");
 			} else {
 				await createSnippet.mutateAsync({
 					name,
@@ -121,13 +128,13 @@ function CreateContent() {
 					shell_type: snippetShell,
 					description: snippetDescription.trim() || null,
 				});
-				toast.success("Snippet created");
+				setStatus("Snippet created");
 			}
 		} else {
 			const name = aliasName.trim();
 			const command = aliasCommand.trim();
 			if (!name || !command) {
-				toast.error("Name and command are required");
+				setStatus("Name and command are required");
 				return;
 			}
 			if (isEditMode) {
@@ -139,7 +146,7 @@ function CreateContent() {
 						description: aliasDescription.trim() || null,
 					},
 				});
-				toast.success("Alias updated");
+				setStatus("Alias updated");
 			} else {
 				await createAlias.mutateAsync({
 					name,
@@ -147,13 +154,36 @@ function CreateContent() {
 					description: aliasDescription.trim() || null,
 					shell_types: available_shells,
 				});
-				toast.success("Alias created");
+				setStatus("Alias created");
 			}
 		}
 
 		await emit("data-changed");
 		await getCurrentWindow().close();
 	};
+
+	useEffect(() => {
+		localStorage.setItem("ssm.editor.terminalOpen", String(terminalOpen));
+	}, [terminalOpen]);
+
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
+				event.preventDefault();
+				void handleSave();
+			}
+			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "w") {
+				event.preventDefault();
+				void getCurrentWindow().close();
+			}
+			if (event.key === "Escape" && terminalOpen) {
+				event.preventDefault();
+				setTerminalOpen(false);
+			}
+		};
+		window.addEventListener("keydown", onKeyDown);
+		return () => window.removeEventListener("keydown", onKeyDown);
+	});
 
 	const isPending =
 		createSnippet.isPending ||
@@ -162,13 +192,13 @@ function CreateContent() {
 		updateAlias.isPending;
 	const canSave =
 		activeTab === "snippet"
-			? snippetName.trim() && snippetContent.trim()
-			: aliasName.trim() && aliasCommand.trim();
+			? !!snippetName.trim() && !!snippetContent.trim()
+			: !!aliasName.trim() && !!aliasCommand.trim();
 
 	return (
 		<div className="flex flex-col h-screen bg-background text-foreground">
 			{/* Top bar */}
-			<header className="flex items-center justify-between px-4 h-12 border-b border-border shrink-0" data-tauri-drag-region>
+			<header className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border px-4" data-tauri-drag-region>
 				{isEditMode ? (
 					<span className="text-sm font-medium text-muted-foreground">
 						Edit {activeTab === "snippet" ? "Snippet" : "Alias"}
@@ -185,21 +215,42 @@ function CreateContent() {
 						</TabsList>
 					</Tabs>
 				)}
-				<Button
-					onClick={handleSave}
-					disabled={!canSave || isPending}
-					size="sm"
-					className="gap-2 bg-success hover:bg-success/90 text-black font-medium"
-				>
-					<Save className="w-4 h-4" />
-					{isEditMode ? "Update" : "Save"}
-				</Button>
+				<div className="ml-auto flex items-center gap-2">
+					{status && (
+						<span className="max-w-[260px] truncate text-xs text-muted-foreground">
+							{status}
+						</span>
+					)}
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => setTerminalOpen((open) => !open)}
+						className="gap-1.5"
+					>
+						{terminalOpen ? (
+							<PanelRightClose className="size-4" />
+						) : (
+							<PanelRightOpen className="size-4" />
+						)}
+						Terminal
+					</Button>
+					<Button
+						onClick={handleSave}
+						disabled={!canSave || isPending}
+						size="sm"
+						className="gap-1.5"
+					>
+						<Save className="size-4" />
+						{isEditMode ? "Update" : "Save"}
+					</Button>
+				</div>
 			</header>
 
 			{/* Main split area */}
 			<div className="flex flex-1 min-h-0">
 				{/* Left: Editor panel */}
-				<div className="w-[55%] flex flex-col border-r border-border">
+				<div className={cn("flex flex-col", terminalOpen ? "w-[58%] border-r border-border" : "w-full")}>
 					{/* Form fields */}
 					<div className="p-4 space-y-3 shrink-0 border-b border-border">
 						{activeTab === "snippet" ? (
@@ -310,14 +361,14 @@ function CreateContent() {
 								onClick={handleRun}
 								size="sm"
 								variant="outline"
-								className="gap-2"
+								className="gap-1.5"
 								disabled={
 									activeTab === "snippet"
 										? !snippetContent.trim()
 										: !aliasCommand.trim()
 								}
 							>
-								<Play className="w-3.5 h-3.5" />
+								<Play className="size-3.5" />
 								Run
 							</Button>
 						</div>
@@ -325,13 +376,15 @@ function CreateContent() {
 				</div>
 
 				{/* Right: Terminal panel */}
-				<div className="w-[45%] p-2">
-					<Terminal
-						ref={terminalRef}
-						shell={activeTab === "snippet" ? snippetShell : default_shell}
-						className="h-full rounded-md overflow-hidden"
-					/>
-				</div>
+				{terminalOpen && (
+					<div className="w-[42%] p-2">
+						<Terminal
+							ref={terminalRef}
+							shell={activeTab === "snippet" ? snippetShell : default_shell}
+							className="h-full rounded-md overflow-hidden"
+						/>
+					</div>
+				)}
 			</div>
 		</div>
 	);

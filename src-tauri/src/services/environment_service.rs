@@ -5,7 +5,7 @@ use crate::db::schema::environment_variables::dsl as ev;
 use crate::error::{AppError, AppResult};
 use crate::models::{
 	Environment, EnvironmentResponse, EnvironmentVariable, NewEnvironment,
-	NewEnvironmentVariable, UpdateEnvironment, UpdateEnvironmentVariable,
+	NewEnvironmentVariable, UpdateEnvironment,
 };
 
 /// Load an environment and its associated variables into an EnvironmentResponse

@@ -52,12 +52,72 @@ use commands::{
 use config::AppPaths;
 use db::connection::{establish_connection, run_migrations};
 use services::pty_service;
-use tauri::Manager;
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
+use tauri::{Emitter, Manager};
+
+fn build_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
+	let file = Submenu::with_items(
+		app,
+		"File",
+		true,
+		&[
+			&MenuItem::with_id(app, "new-snippet", "New Snippet", true, Some("CmdOrCtrl+N"))?,
+			&MenuItem::with_id(app, "new-alias", "New Alias", true, Some("CmdOrCtrl+Shift+N"))?,
+			&PredefinedMenuItem::separator(app)?,
+			&MenuItem::with_id(app, "sync", "Sync", true, Some("CmdOrCtrl+Shift+S"))?,
+			&PredefinedMenuItem::separator(app)?,
+			&PredefinedMenuItem::close_window(app, None)?,
+		],
+	)?;
+	let edit = Submenu::with_items(
+		app,
+		"Edit",
+		true,
+		&[
+			&PredefinedMenuItem::undo(app, None)?,
+			&PredefinedMenuItem::redo(app, None)?,
+			&PredefinedMenuItem::separator(app)?,
+			&PredefinedMenuItem::cut(app, None)?,
+			&PredefinedMenuItem::copy(app, None)?,
+			&PredefinedMenuItem::paste(app, None)?,
+			&PredefinedMenuItem::select_all(app, None)?,
+		],
+	)?;
+	let view = Submenu::with_items(
+		app,
+		"View",
+		true,
+		&[
+			&MenuItem::with_id(app, "focus-search", "Search", true, Some("CmdOrCtrl+F"))?,
+			&MenuItem::with_id(
+				app,
+				"toggle-inspector",
+				"Toggle Inspector",
+				true,
+				Some("CmdOrCtrl+Option+I"),
+			)?,
+		],
+	)?;
+
+	Menu::with_items(app, &[&file, &edit, &view])
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
 	tauri::Builder::default()
 		.plugin(tauri_plugin_opener::init())
+		.plugin(tauri_plugin_dialog::init())
+		.plugin(tauri_plugin_window_state::Builder::default().build())
+		.menu(build_menu)
+		.on_menu_event(|app, event| {
+			let id = event.id().0.clone();
+			if matches!(
+				id.as_str(),
+				"new-snippet" | "new-alias" | "sync" | "focus-search" | "toggle-inspector"
+			) {
+				let _ = app.emit("menu-command", id);
+			}
+		})
 		.setup(|app| {
 			// Initialize XDG-compliant paths
 			let paths = AppPaths::new()
