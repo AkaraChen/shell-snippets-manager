@@ -9,15 +9,15 @@ interface ShellTypeBadgeProps {
 const shellConfig: Record<ShellType, { label: string; colorClass: string }> = {
 	bash: {
 		label: "bash",
-		colorClass: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
+		colorClass: "bg-muted text-muted-foreground border-border",
 	},
 	zsh: {
 		label: "zsh",
-		colorClass: "bg-cyan-500/15 text-cyan-500 border-cyan-500/30",
+		colorClass: "bg-muted text-muted-foreground border-border",
 	},
 	fish: {
 		label: "fish",
-		colorClass: "bg-amber-500/15 text-amber-500 border-amber-500/30",
+		colorClass: "bg-muted text-muted-foreground border-border",
 	},
 };
 

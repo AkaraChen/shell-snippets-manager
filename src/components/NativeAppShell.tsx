@@ -33,15 +33,14 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useAliases } from "@/hooks/useAliases";
 import { useEnvironments } from "@/hooks/useEnvironments";
-import { useShellInfo } from "@/hooks/useShellInfo";
 import { useSnippets } from "@/hooks/useSnippets";
 import { openCreateWindow } from "@/lib/createWindow";
 import { cn } from "@/lib/utils";
 import type { Environment } from "@/types/environment";
-import type { AliasResponse, Snippet } from "@/types/snippet";
+import { SNIPPET_FILTER_SHELLS, type AliasResponse, type Snippet } from "@/types/snippet";
 
 type Section = "snippets" | "aliases" | "environments";
-type ShellFilter = "all" | string;
+type ShellFilter = (typeof SNIPPET_FILTER_SHELLS)[number];
 type StatusTone = "idle" | "success" | "error" | "pending";
 
 interface LayoutState {
@@ -61,7 +60,7 @@ const LAYOUT_KEY = "ssm.layout.v1";
 
 const defaultLayout: LayoutState = {
 	section: "snippets",
-	shellFilter: "all",
+	shellFilter: "zsh",
 	search: {
 		snippets: "",
 		aliases: "",
@@ -101,7 +100,6 @@ function capitalizeShellName(shell: string): string {
 		bash: "Bash",
 		zsh: "Zsh",
 		fish: "Fish",
-		all: "All",
 	};
 	return specialCases[shell] ?? shell.charAt(0).toUpperCase() + shell.slice(1);
 }
@@ -339,7 +337,6 @@ export function NativeAppShell() {
 		useAliases();
 	const { environments, loading: envLoading, deleteEnvironment, mutate: mutateEnvironments } =
 		useEnvironments();
-	const { available_shells, default_shell } = useShellInfo();
 	const [layout, setLayout] = useState(loadLayout);
 	const [status, setStatus] = useState<StatusState>({ message: "", tone: "idle" });
 	const [environmentDialogOpen, setEnvironmentDialogOpen] = useState(false);
@@ -437,15 +434,12 @@ export function NativeAppShell() {
 		};
 	}, [handleMenuCommand, refreshAll]);
 
-	const shellFilters = useMemo(() => {
-		const shells = [default_shell, ...available_shells.filter((s) => s !== default_shell).sort()];
-		return ["all", ...shells];
-	}, [available_shells, default_shell]);
+	const shellFilters = SNIPPET_FILTER_SHELLS;
 
 	const query = layout.search[layout.section];
 	const filteredSnippets = useMemo(() => {
 		return snippets.filter((snippet) => {
-			const shellMatches = layout.shellFilter === "all" || snippet.shell_type === layout.shellFilter;
+			const shellMatches = snippet.shell_type === layout.shellFilter;
 			const queryMatches =
 				itemMatches(snippet.name, query) ||
 				itemMatches(snippet.description, query) ||
@@ -523,7 +517,7 @@ export function NativeAppShell() {
 	};
 
 	const handleReorder = async (direction: -1 | 1) => {
-		if (layout.section !== "snippets" || layout.shellFilter === "all" || !selectedSnippet) return;
+		if (layout.section !== "snippets" || !selectedSnippet) return;
 		const currentIndex = filteredSnippets.findIndex((snippet) => snippet.id === selectedSnippet.id);
 		const nextIndex = currentIndex + direction;
 		if (nextIndex < 0 || nextIndex >= filteredSnippets.length) return;
@@ -665,7 +659,6 @@ export function NativeAppShell() {
 									)}
 								>
 									<span>{capitalizeShellName(shell)}</span>
-									{shell === "all" && <span className="text-xs text-muted-foreground">{snippets.length}</span>}
 								</button>
 							))}
 						</div>
@@ -693,7 +686,7 @@ export function NativeAppShell() {
 							/>
 						</div>
 						<div className="ml-auto flex items-center gap-2">
-							{layout.section === "snippets" && layout.shellFilter !== "all" && (
+							{layout.section === "snippets" && (
 								<div className="flex items-center gap-1">
 									<Button variant="outline" size="icon-sm" onClick={() => handleReorder(-1)} title="Move up">
 										<ChevronLeft className="size-4 rotate-90" />
@@ -736,7 +729,7 @@ export function NativeAppShell() {
 											key={snippet.id}
 											snippet={snippet}
 											selected={selectedSnippet?.id === snippet.id}
-											showShell={layout.shellFilter === "all"}
+											showShell={false}
 											onSelect={() => selectItem("snippets", snippet.id)}
 											onToggle={() => toggleSnippet(snippet.id)}
 										/>
@@ -862,7 +855,11 @@ function SnippetInspector({
 			</div>
 			{snippet.description && <p className="text-sm text-muted-foreground">{snippet.description}</p>}
 			{aliasName && <div className="text-sm text-muted-foreground">Alias: {aliasName}</div>}
-			<SnippetCodeBlock content={snippet.content} shellType={snippet.shell_type} />
+			<SnippetCodeBlock
+				content={snippet.content}
+				shellType={snippet.shell_type}
+				className="[&_code]:!text-xs [&_pre]:!text-xs"
+			/>
 			<div className="flex gap-2">
 				<InspectorAction onClick={onEdit}>
 					<Pencil className="size-4" />
@@ -893,7 +890,7 @@ function AliasInspector({
 				<div className="font-mono text-xs text-muted-foreground">{alias.command}</div>
 			</div>
 			{alias.description && <p className="text-sm text-muted-foreground">{alias.description}</p>}
-			<div className="rounded-md border border-code-border bg-code-bg p-3 font-mono text-sm text-foreground">
+			<div className="rounded-md border border-code-border bg-code-bg p-3 font-mono text-xs text-foreground">
 				{alias.command}
 			</div>
 			{alias.snippets.length > 0 && (
@@ -941,7 +938,7 @@ function EnvironmentInspector({
 				</div>
 			</div>
 			{environment.description && <p className="text-sm text-muted-foreground">{environment.description}</p>}
-			<div className="rounded-md border border-code-border bg-code-bg p-3 font-mono text-sm">
+			<div className="rounded-md border border-code-border bg-code-bg p-3 font-mono text-xs">
 				{environment.env_vars.length > 0 ? (
 					environment.env_vars.map((variable) => (
 						<div key={variable.id} className="flex gap-1">

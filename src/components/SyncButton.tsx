@@ -41,7 +41,7 @@ function SyncButtonContent() {
 					variant="outline"
 					size="sm"
 					disabled={isPending}
-					className="gap-2 border-code-border hover:border-success/50 hover:bg-success/5"
+					className="gap-2 border-border"
 				>
 					{isPending ? (
 						<Loader2 className="w-4 h-4 animate-spin" />
@@ -60,9 +60,8 @@ function SyncButtonContent() {
 				<DropdownMenuItem
 					onClick={() => syncAll()}
 					disabled={isPending}
-					className="cursor-pointer"
 				>
-					<RefreshCw className="w-4 h-4 mr-2 text-success" />
+					<RefreshCw className="w-4 h-4 mr-2 text-muted-foreground" />
 					<span className="font-[var(--font-mono)]">
 						Sync All Shells
 					</span>
@@ -73,7 +72,6 @@ function SyncButtonContent() {
 						key={shell}
 						onClick={() => syncToShell(shell)}
 						disabled={isPending}
-						className="cursor-pointer"
 					>
 						<Terminal className="w-4 h-4 mr-2 text-muted-foreground" />
 						<span className="font-[var(--font-mono)]">
@@ -97,7 +95,7 @@ function SyncButtonFallback() {
 			variant="outline"
 			size="sm"
 			disabled
-			className="gap-2 border-code-border"
+			className="gap-2 border-border"
 		>
 			<Loader2 className="w-4 h-4 animate-spin" />
 			Sync

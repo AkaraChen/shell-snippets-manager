@@ -48,12 +48,12 @@ export function Header({
 	const showShellSelector = !!selectedShell && !!availableShells && !!onShellChange;
 
 	return (
-		<header className="sticky top-0 z-50 w-full border-b border-code-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+		<header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 			<div className="container mx-auto flex h-14 items-center justify-between px-4 max-w-3xl">
 				{/* Logo and title */}
 				<div className="flex items-center gap-3">
-					<div className="flex items-center justify-center w-8 h-8 rounded-md bg-success/10 border border-success/20">
-						<Terminal className="w-4 h-4 text-success" />
+					<div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted border border-border">
+						<Terminal className="w-4 h-4 text-muted-foreground" />
 					</div>
 					<h1 className="text-lg font-semibold font-[var(--font-mono)] tracking-tight flex items-center">
 						{showShellSelector ? (
@@ -61,7 +61,7 @@ export function Header({
 								value={selectedShell}
 								onValueChange={onShellChange}
 							>
-								<SelectTrigger className="border-none shadow-none bg-transparent! hover:bg-success/10! px-2 h-auto w-auto text-lg font-semibold text-success focus:ring-0 focus-visible:ring-0 gap-1 mr-2 [&>svg]:text-success">
+								<SelectTrigger className="border-none shadow-none bg-transparent! px-2 h-auto w-auto text-lg font-semibold text-foreground focus:ring-0 focus-visible:ring-0 gap-1 mr-2 [&>svg]:text-muted-foreground">
 									<SelectValue>
 										{capitalizeShellName(selectedShell)}
 									</SelectValue>
@@ -79,7 +79,7 @@ export function Header({
 								</SelectContent>
 							</Select>
 						) : (
-							<span className="text-success mr-2 px-2">
+							<span className="text-foreground mr-2 px-2">
 								Shell
 							</span>
 						)}
@@ -96,7 +96,7 @@ export function Header({
 					<Button
 						onClick={onCreateClick}
 						size="sm"
-						className="gap-2 bg-success hover:bg-success/90 text-black font-medium"
+						className="gap-2 font-medium"
 					>
 						<Plus className="w-4 h-4" />
 						{createLabel}
@@ -112,7 +112,7 @@ export function Header({
 						className={cn(
 							"px-1 py-2 text-sm font-(--font-mono) border-b-2 transition-colors",
 							location === "/"
-								? "border-success text-success"
+								? "border-foreground text-foreground"
 								: "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
 						)}
 					>
@@ -126,7 +126,7 @@ export function Header({
 						className={cn(
 							"px-1 py-2 text-sm font-(--font-mono) border-b-2 transition-colors",
 							location === "/aliases"
-								? "border-success text-success"
+								? "border-foreground text-foreground"
 								: "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
 						)}
 					>
@@ -140,7 +140,7 @@ export function Header({
 						className={cn(
 							"px-1 py-2 text-sm font-(--font-mono) border-b-2 transition-colors",
 							location === "/environments"
-								? "border-success text-success"
+								? "border-foreground text-foreground"
 								: "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30",
 						)}
 					>
@@ -152,8 +152,6 @@ export function Header({
 				</nav>
 			</div>
 
-			{/* Subtle glow line */}
-			<div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-success/30 to-transparent" />
 		</header>
 	);
 }

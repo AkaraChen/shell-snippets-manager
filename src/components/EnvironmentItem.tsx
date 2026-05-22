@@ -102,7 +102,7 @@ export function EnvironmentItem({
 								variant="ghost"
 								size="sm"
 								onClick={() => onEdit(environment)}
-								className="text-muted-foreground hover:text-foreground hover:bg-success/10"
+								className="text-muted-foreground hover:text-foreground"
 							>
 								<Pencil className="w-3.5 h-3.5 mr-1.5" />
 								Edit

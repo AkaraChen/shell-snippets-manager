@@ -32,7 +32,7 @@ function CreateAliasDialogContent({
 		<>
 			<DialogHeader>
 				<DialogTitle className="flex items-center gap-2 font-(--font-mono)">
-					<Terminal className="w-5 h-5 text-success" />
+					<Terminal className="w-5 h-5 text-muted-foreground" />
 					Create Alias
 				</DialogTitle>
 			</DialogHeader>

@@ -146,7 +146,7 @@ function HelpDialogContent() {
 										onClick={() =>
 											handleCopyConfigPath(config.rcFile)
 										}
-										className="font-[var(--font-mono)] text-success hover:underline focus:outline-none"
+										className="font-[var(--font-mono)] text-foreground underline-offset-2 hover:underline focus:outline-none"
 									>
 										{config.rcFile}
 									</button>
@@ -157,9 +157,9 @@ function HelpDialogContent() {
 								<div
 									onClick={() => handleCopyCode(sourceLine)}
 									className={cn(
-										"rounded-md overflow-x-auto w-full min-w-0 max-w-full cursor-pointer",
+										"rounded-md overflow-x-auto w-full min-w-0 max-w-full cursor-default",
 										"bg-code-bg border border-code-border",
-										"hover:border-success/50 transition-colors",
+										"hover:border-ring/50 transition-colors",
 									)}
 								>
 									<div className="p-2 code-scrollbar text-xs [&_pre]:!bg-transparent [&_pre]:!m-0 [&_pre]:!p-0 [&_code]:!bg-transparent [&_.shiki]:!bg-transparent [&_pre]:!max-w-none">
@@ -178,7 +178,7 @@ function HelpDialogContent() {
 									like to{" "}
 									<button
 										onClick={handleOpenDirectory}
-										className="text-success hover:underline focus:outline-none"
+										className="text-foreground underline-offset-2 hover:underline focus:outline-none"
 									>
 										inspect
 									</button>{" "}

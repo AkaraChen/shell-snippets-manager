@@ -149,7 +149,6 @@ export function AliasForm({
 				<Button
 					type="submit"
 					disabled={isPending || !name.trim() || !command.trim()}
-					className="bg-success hover:bg-success/90 text-black"
 				>
 					{isPending
 						? isEdit

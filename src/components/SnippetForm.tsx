@@ -307,7 +307,6 @@ export function SnippetForm({
 				<Button
 					type="submit"
 					disabled={isPending || !name.trim() || !content.trim()}
-					className="bg-success hover:bg-success/90 text-black"
 				>
 					{isPending
 						? mode === "create"

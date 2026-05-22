@@ -113,7 +113,7 @@ export function SnippetItem({
 								variant="ghost"
 								size="sm"
 								onClick={() => onEdit(snippet)}
-								className="text-muted-foreground hover:text-foreground hover:bg-success/10"
+								className="text-muted-foreground hover:text-foreground"
 							>
 								<Pencil className="w-3.5 h-3.5 mr-1.5" />
 								Edit
@@ -133,7 +133,6 @@ export function SnippetItem({
 								<Switch
 									checked={snippet.enabled}
 									onCheckedChange={() => onToggle(snippet.id)}
-									className="data-[state=checked]:bg-success"
 								/>
 								<span className="text-xs text-muted-foreground">
 									{snippet.enabled ? "Enabled" : "Disabled"}

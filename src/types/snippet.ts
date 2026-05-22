@@ -1,4 +1,6 @@
+export const SHELL_TYPES = ["bash", "zsh", "fish"] as const;
 export type ShellType = string;
+export const SNIPPET_FILTER_SHELLS = ["zsh", "bash"] as const;
 
 export interface ShellInfo {
 	available_shells: string[];

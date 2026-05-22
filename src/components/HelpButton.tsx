@@ -12,7 +12,7 @@ export function HelpButton() {
 				variant="outline"
 				size="sm"
 				onClick={() => setDialogOpen(true)}
-				className="gap-2 border-code-border hover:border-success/50 hover:bg-success/5"
+				className="gap-2 border-border"
 			>
 				<HelpCircle className="w-4 h-4" />
 				Help
