@@ -29,6 +29,9 @@ pub enum AppError {
 
 	#[error("PTY error: {0}")]
 	PtyError(String),
+
+	#[error("Format error: {0}")]
+	FormatError(String),
 }
 
 impl Serialize for AppError {

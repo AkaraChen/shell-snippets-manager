@@ -1,4 +1,9 @@
-use std::collections::HashSet;
+use std::{
+	collections::HashSet,
+	io::Write,
+	path::PathBuf,
+	process::{Command, Stdio},
+};
 
 use serde::Serialize;
 use tauri::State;
@@ -10,6 +15,19 @@ use crate::models::{NewSnippet, ShellType, SnippetResponse, UpdateSnippet};
 use crate::services::{environment_service, snippet_service, sync_service};
 
 type DbState<'a> = State<'a, DbConnection>;
+
+fn bundled_shfmt_path() -> Result<PathBuf, AppError> {
+	let exe_path = std::env::current_exe().map_err(AppError::IoError)?;
+	let exe_dir = exe_path.parent().ok_or_else(|| {
+		AppError::FormatError("failed to resolve application directory".to_string())
+	})?;
+
+	#[cfg(windows)]
+	return Ok(exe_dir.join("shfmt.exe"));
+
+	#[cfg(not(windows))]
+	return Ok(exe_dir.join("shfmt"));
+}
 
 // ============================================================================
 // Snippet Commands
@@ -75,6 +93,63 @@ pub fn reorder_snippets(
 ) -> Result<(), AppError> {
 	let mut conn = db.lock().map_err(|_| AppError::LockError)?;
 	snippet_service::reorder_snippets(&mut conn, order)
+}
+
+/// Format shell snippet content with shfmt.
+#[tauri::command]
+pub fn format_shell_script(
+	content: String,
+	shell_type: String,
+) -> Result<String, AppError> {
+	if content.trim().is_empty() {
+		return Ok(content);
+	}
+
+	let language = match shell_type.as_str() {
+		"bash" | "zsh" => "bash",
+		"sh" => "posix",
+		"fish" => {
+			return Err(AppError::FormatError(
+				"shfmt does not support fish syntax".to_string(),
+			));
+		}
+		_ => "bash",
+	};
+
+	let mut child = Command::new(bundled_shfmt_path()?)
+		.args(["-ln", language])
+		.stdin(Stdio::piped())
+		.stdout(Stdio::piped())
+		.stderr(Stdio::piped())
+		.spawn()
+		.map_err(|error| {
+			if error.kind() == std::io::ErrorKind::NotFound {
+				AppError::FormatError(
+					"bundled shfmt binary was not found".to_string(),
+				)
+			} else {
+				AppError::IoError(error)
+			}
+		})?;
+
+	if let Some(mut stdin) = child.stdin.take() {
+		stdin.write_all(content.as_bytes()).map_err(AppError::IoError)?;
+	}
+
+	let output = child.wait_with_output().map_err(AppError::IoError)?;
+	if !output.status.success() {
+		let stderr = String::from_utf8_lossy(&output.stderr)
+			.trim()
+			.to_string();
+		return Err(AppError::FormatError(if stderr.is_empty() {
+			"shfmt failed to format this snippet".to_string()
+		} else {
+			stderr
+		}));
+	}
+
+	String::from_utf8(output.stdout)
+		.map_err(|error| AppError::FormatError(error.to_string()))
 }
 
 // ============================================================================

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import useSWR from "swr";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { PanelRightClose, PanelRightOpen, Play, Save } from "lucide-react";
+import { PanelRightClose, PanelRightOpen, Play, Save, Wand2 } from "lucide-react";
 import { snippetApi, aliasApi } from "@/api/snippets";
 import { CodeEditor } from "@/components/CodeEditor";
 import { Terminal, type TerminalHandle } from "@/components/Terminal";
@@ -80,6 +80,7 @@ function CreateContent() {
 		return localStorage.getItem("ssm.editor.terminalOpen") === "true";
 	});
 	const [status, setStatus] = useState("");
+	const [isFormatting, setIsFormatting] = useState(false);
 
 	// Snippet form state — pre-populate from editData when editing
 	const snippetEdit = isEditMode && initialTab === "snippet" ? (editData as Snippet) : null;
@@ -109,6 +110,28 @@ function CreateContent() {
 			setTerminalOpen(true);
 			terminalRef.current.runCode(code);
 			setStatus("Running");
+		}
+	};
+
+	const handleFormat = async () => {
+		const content = activeTab === "snippet" ? snippetContent : aliasCommand;
+		const shellType = activeTab === "snippet" ? snippetShell : default_shell;
+		if (!content.trim()) return;
+
+		setIsFormatting(true);
+		setStatus("Formatting");
+		try {
+			const formatted = await snippetApi.formatShellScript(content, shellType);
+			if (activeTab === "snippet") {
+				setSnippetContent(formatted);
+			} else {
+				setAliasCommand(formatted);
+			}
+			setStatus(formatted === content ? "Already formatted" : "Formatted");
+		} catch (error) {
+			setStatus(error instanceof Error ? error.message : String(error));
+		} finally {
+			setIsFormatting(false);
 		}
 	};
 
@@ -221,7 +244,8 @@ function CreateContent() {
 		createSnippet.isPending ||
 		createAlias.isPending ||
 		updateSnippet.isPending ||
-		updateAlias.isPending;
+		updateAlias.isPending ||
+		isFormatting;
 	const canSave =
 		activeTab === "snippet"
 			? !!snippetName.trim() && !!snippetContent.trim()
@@ -390,7 +414,22 @@ function CreateContent() {
 							className="flex-1 overflow-auto"
 						/>
 						{/* Run button bar */}
-						<div className="flex justify-end px-4 py-2 border-t border-border shrink-0">
+						<div className="flex justify-end gap-2 px-4 py-2 border-t border-border shrink-0">
+							<Button
+								onClick={handleFormat}
+								size="sm"
+								variant="outline"
+								className="gap-1.5"
+								disabled={
+									isFormatting ||
+									(activeTab === "snippet"
+										? !snippetContent.trim()
+										: !aliasCommand.trim())
+								}
+							>
+								<Wand2 className="size-3.5" />
+								format
+							</Button>
 							<Button
 								onClick={handleRun}
 								size="sm"

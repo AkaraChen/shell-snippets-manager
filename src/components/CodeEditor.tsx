@@ -4,12 +4,12 @@ import { EditorView, keymap, placeholder as cmPlaceholder } from "@codemirror/vi
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import {
 	syntaxHighlighting,
-	defaultHighlightStyle,
 	bracketMatching,
 	StreamLanguage,
+	HighlightStyle,
 } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { shell } from "@codemirror/legacy-modes/mode/shell";
-import { oneDark } from "@codemirror/theme-one-dark";
 
 interface CodeEditorProps {
 	value: string;
@@ -22,6 +22,8 @@ const editorTheme = EditorView.theme({
 	"&": {
 		fontSize: "13px",
 		fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)',
+		backgroundColor: "var(--editor-bg)",
+		color: "var(--editor-foreground)",
 	},
 	"&.cm-focused": {
 		outline: "none",
@@ -29,7 +31,40 @@ const editorTheme = EditorView.theme({
 	".cm-scroller": {
 		fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)',
 	},
+	".cm-content": {
+		caretColor: "var(--editor-cursor)",
+	},
+	".cm-cursor, .cm-dropCursor": {
+		borderLeftColor: "var(--editor-cursor)",
+	},
+	"&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
+		backgroundColor: "var(--editor-selection)",
+	},
+	".cm-activeLine": {
+		backgroundColor: "var(--editor-active-line)",
+	},
+	".cm-gutters": {
+		backgroundColor: "var(--editor-gutter-bg)",
+		color: "var(--editor-gutter-foreground)",
+		borderRightColor: "var(--code-border)",
+	},
+	".cm-line": {
+		color: "var(--editor-foreground)",
+	},
+	".cm-placeholder": {
+		color: "var(--muted-foreground)",
+	},
 });
+
+const shellHighlightStyle = HighlightStyle.define([
+	{ tag: tags.keyword, color: "var(--syntax-keyword)" },
+	{ tag: [tags.atom, tags.bool, tags.special(tags.variableName)], color: "var(--syntax-atom)" },
+	{ tag: [tags.string, tags.character], color: "var(--syntax-string)" },
+	{ tag: [tags.variableName, tags.definition(tags.variableName)], color: "var(--syntax-variable)" },
+	{ tag: [tags.comment, tags.lineComment, tags.blockComment], color: "var(--syntax-comment)", fontStyle: "italic" },
+	{ tag: tags.number, color: "var(--syntax-number)" },
+	{ tag: tags.operator, color: "var(--editor-foreground)" },
+]);
 
 export function CodeEditor({
 	value,
@@ -53,9 +88,8 @@ export function CodeEditor({
 				history(),
 				keymap.of([...defaultKeymap, ...historyKeymap]),
 				StreamLanguage.define(shell),
-				syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+				syntaxHighlighting(shellHighlightStyle, { fallback: true }),
 				bracketMatching(),
-				oneDark,
 				editorTheme,
 				cmPlaceholder(placeholder),
 				EditorView.updateListener.of((update) => {

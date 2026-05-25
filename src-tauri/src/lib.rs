@@ -15,6 +15,7 @@ use commands::{
 	create_snippet,
 	delete_alias,
 	delete_snippet,
+	format_shell_script,
 	get_alias,
 	get_aliases,
 	// Sync & system
@@ -147,6 +148,7 @@ pub fn run() {
 			delete_snippet,
 			toggle_snippet,
 			reorder_snippets,
+			format_shell_script,
 			// Alias CRUD
 			get_aliases,
 			get_alias,

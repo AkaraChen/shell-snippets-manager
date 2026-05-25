@@ -28,6 +28,9 @@ export const snippetApi = {
 
 	reorder: (order: [number, number][]) =>
 		invoke<void>("reorder_snippets", { order }),
+
+	formatShellScript: (content: string, shellType: ShellType) =>
+		invoke<string>("format_shell_script", { content, shellType }),
 };
 
 export const syncApi = {

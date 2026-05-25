@@ -5,6 +5,37 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { ptyApi } from "@/api/pty";
 import "@xterm/xterm/css/xterm.css";
 
+function readThemeColor(name: string) {
+	return getComputedStyle(document.documentElement)
+		.getPropertyValue(name)
+		.trim();
+}
+
+function getTerminalTheme() {
+	return {
+		background: readThemeColor("--terminal-bg"),
+		foreground: readThemeColor("--terminal-foreground"),
+		cursor: readThemeColor("--terminal-cursor"),
+		selectionBackground: readThemeColor("--terminal-selection"),
+		black: readThemeColor("--terminal-black"),
+		red: readThemeColor("--terminal-red"),
+		green: readThemeColor("--terminal-green"),
+		yellow: readThemeColor("--terminal-yellow"),
+		blue: readThemeColor("--terminal-blue"),
+		magenta: readThemeColor("--terminal-magenta"),
+		cyan: readThemeColor("--terminal-cyan"),
+		white: readThemeColor("--terminal-white"),
+		brightBlack: readThemeColor("--terminal-black"),
+		brightRed: readThemeColor("--terminal-red"),
+		brightGreen: readThemeColor("--terminal-green"),
+		brightYellow: readThemeColor("--terminal-yellow"),
+		brightBlue: readThemeColor("--terminal-blue"),
+		brightMagenta: readThemeColor("--terminal-magenta"),
+		brightCyan: readThemeColor("--terminal-cyan"),
+		brightWhite: readThemeColor("--terminal-white"),
+	};
+}
+
 export interface TerminalHandle {
 	runCode: (code: string) => void;
 }
@@ -36,12 +67,7 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
 			const term = new XTerm({
 				fontFamily: '"JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace',
 				fontSize: 13,
-				theme: {
-					background: "#2a2a2c",
-					foreground: "#e4e4e7",
-					cursor: "#b7c4d8",
-					selectionBackground: "#46464a",
-				},
+				theme: getTerminalTheme(),
 				cursorBlink: true,
 				convertEol: true,
 			});
@@ -105,7 +131,14 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
 			});
 			resizeObserver.observe(containerRef.current);
 
+			const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+			const handleColorSchemeChange = () => {
+				term.options.theme = getTerminalTheme();
+			};
+			colorSchemeQuery.addEventListener("change", handleColorSchemeChange);
+
 			return () => {
+				colorSchemeQuery.removeEventListener("change", handleColorSchemeChange);
 				resizeObserver.disconnect();
 				onDataDisposable.dispose();
 				onResizeDisposable.dispose();
